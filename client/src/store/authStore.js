@@ -1,53 +1,93 @@
-import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-import apiClient from '../services/api';
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import { toast } from "react-toastify";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 const useAuthStore = create(
   persist(
     (set, get) => ({
       token: null,
       user: null,
-      isAuthenticated: false,
+
+      setUser: (newUser) => set({ user: newUser }),
 
       login: async (email, password) => {
-        const response = await apiClient.post('/users/login', {
-          email,
-          password,
-        });
-        const { token, user } = response.data;
-        set({ token, user, isAuthenticated: true });
-        return response.data;
-      },
-
-      register: async (userData) => {
-        const response = await apiClient.post('/users/register', userData);
-        return response.data;
-      },
-
-      logout: () => {
-        set({ token: null, user: null, isAuthenticated: false });
-      },
-
-      verifyToken: async () => {
         try {
-          const response = await apiClient.get('/users/verify');
-          set({ user: response.data, isAuthenticated: true });
+          const res = await fetch(`${API_URL}/users/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          });
+          const data = await res.json();
+          if (res.ok) {
+            set({ token: data.token, user: data.user });
+            toast.success("¡Bienvenido de nuevo!");
+          } else {
+            toast.error(data.msg || "Error en el inicio de sesión.");
+          }
+          return data;
         } catch (error) {
-          console.error("Token verification failed, logging out.", error);
-          get().logout();
+          toast.error("Error de red o respuesta inválida del servidor.");
+          return { error: true, msg: "Error de red o respuesta inválida del servidor." };
         }
       },
 
-      getProfile: async () => {
-        // This can be simplified or removed if verifyToken is used consistently
-        const response = await apiClient.get('/users/profile');
-        set({ user: response.data });
-        return response.data;
+      register: async (userData = {}) => {
+        try {
+          const res = await fetch(`${API_URL}/users/register`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(userData),
+          });
+          const data = await res.json();
+          if (res.ok) {
+            toast.success(data.msg || "¡Registro exitoso!");
+          } else {
+            if (data.errors) {
+              data.errors.forEach((err) => toast.error(err.msg));
+            } else {
+              toast.error(data.msg || "Error en el registro.");
+            }
+          }
+          return data;
+        } catch (error) {
+          toast.error("Error de red o respuesta inválida del servidor.");
+          return { error: true, msg: "Error de red o respuesta inválida del servidor." };
+        }
+      },
+
+      logout: () => {
+        set({ token: null, user: null });
+        toast.info("Has cerrado sesión.");
+      },
+
+      validateToken: async () => {
+        const { token } = get();
+
+        if (!token) {
+          set({ user: null });
+          return;
+        }
+
+        try {
+          const res = await fetch(`${API_URL}/users/verify/${token}`);
+
+          const data = await res.json();
+          if (data.error) {
+            set({ user: null, token: null });
+            return false;
+          }
+
+          return true;
+        } catch (error) {
+          get().logout();
+        }
       },
     }),
     {
-      name: 'auth-storage', // name of the item in the storage (must be unique)
-      storage: createJSONStorage(() => localStorage), // (optional) by default, 'localStorage' is used
+      name: "auth-storage",
+      storage: createJSONStorage(() => localStorage),
     }
   )
 );

@@ -1,6 +1,6 @@
 import express from "express";
 import * as categoryController from "../controllers/categoryController.js";
-import { protect, admin } from "../middlewares/authMiddleware.js";
+import { authMiddleware, admin } from "../middlewares/authMiddleware.js";
 
 import { categoryValidator } from "../middlewares/validators/categoryValidator.js";
 
@@ -19,16 +19,16 @@ router.get("/:id", categoryController.getById);
 // @desc    Create a category
 // @route   POST /api/categories
 // @access  Private/Admin
-router.post("/", protect, admin, categoryValidator, categoryController.create);
+router.post("/", authMiddleware, admin, categoryValidator, categoryController.create);
 
 // @desc    Update a category
 // @route   PUT /api/categories/:id
 // @access  Private/Admin
-router.put("/:id", protect, admin, categoryValidator, categoryController.update);
+router.put("/:id", authMiddleware, admin, categoryValidator, categoryController.update);
 
 // @desc    Delete a category
 // @route   DELETE /api/categories/:id
 // @access  Private/Admin
-router.delete("/:id", protect, admin, categoryController.remove);
+router.delete("/:id", authMiddleware, admin, categoryController.remove);
 
 export default router;

@@ -9,31 +9,31 @@ const validationResultHandler = (req, res, next) => {
 };
 
 export const registerValidator = [
-  body("firstName").notEmpty().withMessage("First name is required."),
-  body("lastName").notEmpty().withMessage("Last name is required."),
-  body("email").isEmail().withMessage("Please provide a valid email."),
+  body("firstName").notEmpty().withMessage("El nombre es obligatorio."),
+  body("lastName").notEmpty().withMessage("El apellido es obligatorio."),
+  body("email").isEmail().withMessage("Por favor, proporciona un correo electrónico válido."),
   body("password")
     .isLength({ min: 6 })
-    .withMessage("Password must be at least 6 characters long."),
+    .withMessage("La contraseña debe tener al menos 6 caracteres."),
   body("repassword")
     .custom((value, { req }) => {
       if (value !== req.body.password) {
-        throw new Error("Passwords do not match.");
+        throw new Error("Las contraseñas no coinciden.");
       }
       return true;
     })
-    .withMessage("Passwords do not match."),
+    .withMessage("Las contraseñas no coinciden."),
   validationResultHandler,
 ];
 
 export const loginValidator = [
-  body("email").isEmail().withMessage("Please provide a valid email."),
-  body("password").notEmpty().withMessage("Password is required."),
+  body("email").isEmail().withMessage("Por favor, proporciona un correo electrónico válido."),
+  body("password").notEmpty().withMessage("La contraseña es obligatoria."),
   validationResultHandler,
 ];
 
 export const passwordUpdateValidator = [
-    body("oldPassword").notEmpty().withMessage("Old password is required."),
-    body("newPassword").isLength({ min: 6 }).withMessage("New password must be at least 6 characters long."),
+    body("oldPassword").notEmpty().withMessage("La contraseña anterior es obligatoria."),
+    body("newPassword").isLength({ min: 6 }).withMessage("La nueva contraseña debe tener al menos 6 caracteres."),
     validationResultHandler,
 ];

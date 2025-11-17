@@ -1,11 +1,11 @@
 import express from "express";
 import * as orderController from "../controllers/orderController.js";
-import { protect, admin } from "../middlewares/authMiddleware.js";
+import { authMiddleware, admin } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-// All user-facing routes are protected
-router.use(protect);
+// All user-facing routes are authMiddlewareed
+router.use(authMiddleware);
 
 // --- User Routes ---
 
@@ -21,10 +21,9 @@ router.get("/", orderController.getForUser);
 // @route   GET /api/orders/:id
 router.get("/:id", orderController.getByIdForUser);
 
-
 // --- Admin Routes ---
 const adminRouter = express.Router();
-adminRouter.use(protect, admin);
+adminRouter.use(authMiddleware, admin);
 
 // @desc    Get all orders
 // @route   GET /api/orders/admin/all
@@ -35,7 +34,6 @@ adminRouter.get("/all", orderController.getAllAdmin);
 adminRouter.put("/:id/status", orderController.updateStatusAdmin);
 
 // Mount admin router
-router.use('/admin', adminRouter);
-
+router.use("/admin", adminRouter);
 
 export default router;

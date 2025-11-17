@@ -9,28 +9,28 @@ const validationResultHandler = (req, res, next) => {
 };
 
 export const createProductValidator = [
-  body("name").notEmpty().withMessage("Product name is required."),
-  body("sku").notEmpty().withMessage("SKU is required."),
+  body("name").notEmpty().withMessage("El nombre del producto es obligatorio."),
+  body("sku").notEmpty().withMessage("El SKU es obligatorio."),
   body("price")
     .isFloat({ gt: 0 })
-    .withMessage("Price must be a positive number."),
+    .withMessage("El precio debe ser un número positivo."),
   body("stock")
     .optional()
     .isInt({ min: 0 })
-    .withMessage("Stock must be a non-negative integer."),
+    .withMessage("El stock debe ser un número entero no negativo."),
   validationResultHandler,
 ];
 
 export const updateProductValidator = [
-    body("name").optional().notEmpty().withMessage("Product name cannot be empty."),
-    body("sku").optional().notEmpty().withMessage("SKU cannot be empty."),
+    body("name").optional().notEmpty().withMessage("El nombre del producto no puede estar vacío."),
+    body("sku").optional().notEmpty().withMessage("El SKU no puede estar vacío."),
     body("price")
       .optional()
       .isFloat({ gt: 0 })
-      .withMessage("Price must be a positive number."),
+      .withMessage("El precio debe ser un número positivo."),
     body("stock")
       .optional()
       .isInt({ min: 0 })
-      .withMessage("Stock must be a non-negative integer."),
+      .withMessage("El stock debe ser un número entero no negativo."),
     validationResultHandler,
   ];

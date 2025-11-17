@@ -1,39 +1,55 @@
-import React, { useEffect, useState } from "react";
-import apiClient from "../services/api";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
+import { toast } from "react-toastify";
+import useAuthStore from "../store/authStore";
 import { ShoppingCart, Trash2, Minus, Plus } from "lucide-react";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 const CartPage = () => {
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
+  const { token } = useAuthStore();
 
   const fetchCart = async () => {
     setLoading(true);
-    setError(null);
     try {
-      const response = await apiClient.get("/cart");
-      setCart(response.data);
+      const res = await fetch(`${API_URL}/cart`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to fetch cart");
+      const data = await res.json();
+      setCart(data);
     } catch (err) {
-      setError(err.response?.data?.message || err.message);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCart();
-  }, []);
+    if (token) {
+      fetchCart();
+    }
+  }, [token]);
 
   const handleUpdateQuantity = async (productId, quantity) => {
     if (quantity < 1) return;
-
     try {
-      await apiClient.put(`/cart/update/${productId}`, { quantity });
+      const res = await fetch(`${API_URL}/cart/update/${productId}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ quantity }),
+      });
+      if (!res.ok) throw new Error("Failed to update quantity");
       fetchCart();
     } catch (err) {
-      alert(`Failed to update quantity: ${err.response?.data?.message || err.message}`);
+      toast.error(`Error al actualizar la cantidad: ${err.message}`);
     }
   };
 
@@ -46,22 +62,32 @@ const CartPage = () => {
 
   const handleRemoveProduct = async (productId) => {
     try {
-      await apiClient.delete(`/cart/remove/${productId}`);
+      const res = await fetch(`${API_URL}/cart/remove/${productId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to remove product");
+      toast.success("Producto eliminado del carrito.");
       fetchCart();
     } catch (err) {
-      alert(`Failed to remove product: ${err.response?.data?.message || err.message}`);
+      toast.error(`Error al eliminar el producto: ${err.message}`);
     }
   };
 
   const handleCheckout = async () => {
     try {
-      await apiClient.post("/orders");
-      alert("Order placed successfully!");
-      fetchCart();
-      navigate("/dashboard");
+      const res = await fetch(`${API_URL}/orders`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "No se pudo realizar el pedido.");
+      }
+      toast.success("¡Pedido realizado con éxito!");
+      navigate("/profile"); // Navigate to profile to see orders
     } catch (err) {
-      const errorMessage = err.response?.data?.message || "Could not place order.";
-      alert(`Error: ${errorMessage}`);
+      toast.error(`Error: ${err.message}`);
     }
   };
 
@@ -87,15 +113,15 @@ const CartPage = () => {
     return (
       <div className="min-h-screen bg-slate-900">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <h2 className="text-4xl font-bold text-white mb-8 tracking-tight">Your Cart</h2>
+          <h2 className="text-4xl font-bold text-white mb-8 tracking-tight">Tu Carrito</h2>
           <div className="bg-slate-800 border border-slate-700 rounded-lg p-12 text-center">
             <ShoppingCart className="mx-auto text-slate-600 mb-4" size={64} />
-            <p className="text-slate-400 text-lg mb-6">Your cart is empty.</p>
+            <p className="text-slate-400 text-lg mb-6">Tu carrito está vacío.</p>
             <button
               onClick={() => navigate("/")}
               className="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-semibold transition-all hover:shadow-lg hover:shadow-emerald-500/30"
             >
-              Start Shopping
+              Comenzar a Comprar
             </button>
           </div>
         </div>
@@ -110,7 +136,7 @@ const CartPage = () => {
   return (
     <div className="min-h-screen bg-slate-900">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <h2 className="text-4xl font-bold text-white mb-8 tracking-tight">Your Cart</h2>
+        <h2 className="text-4xl font-bold text-white mb-8 tracking-tight">Tu Carrito</h2>
 
         <div className="space-y-4 mb-8">
           {cart.CartItems.map((item) => (
@@ -118,7 +144,7 @@ const CartPage = () => {
               <div className="flex items-center justify-between gap-6">
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-white mb-2">{item.Product.name}</h3>
-                  <p className="text-emerald-400 font-medium">${item.Product.price.toFixed(2)}</p>
+                  <p className="text-emerald-400 font-medium">${item.Product.price}</p>
                 </div>
 
                 <div className="flex items-center gap-4">
@@ -165,7 +191,7 @@ const CartPage = () => {
             onClick={handleCheckout}
             className="w-full px-6 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-semibold transition-all hover:shadow-lg hover:shadow-emerald-500/30 text-lg"
           >
-            Proceed to Checkout
+            Proceder al Pago
           </button>
         </div>
       </div>

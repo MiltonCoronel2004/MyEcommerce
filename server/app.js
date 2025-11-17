@@ -16,6 +16,7 @@ import categoryRoutes from "./routes/categoryRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import reportRoutes from "./routes/reportRoutes.js";
+import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { notFound, errorHandler } from "./middlewares/errorMiddleware.js";
@@ -40,8 +41,27 @@ app.use(
 
 setupAssociations();
 
-// Serve static files
-app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
+// Custom static file serving with fallback
+app.use("/uploads", (req, res, next) => {
+  const filePath = path.join(__dirname, "uploads", req.path);
+  const defaultImagePath = path.join(__dirname, "uploads", "computer.png");
+
+  fs.access(filePath, fs.constants.F_OK, (err) => {
+    if (err) {
+      // File does not exist, serve default image
+      res.sendFile(defaultImagePath, (err) => {
+        if (err) {
+          // If default image also doesn't exist, pass to 404 handler
+          next();
+        }
+      });
+    } else {
+      // File exists, serve it
+      res.sendFile(filePath);
+    }
+  });
+});
+
 
 // API Routes
 app.use("/api/users", userRoutes);

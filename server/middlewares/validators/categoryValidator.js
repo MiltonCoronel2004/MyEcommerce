@@ -9,6 +9,6 @@ const validationResultHandler = (req, res, next) => {
 };
 
 export const categoryValidator = [
-  body("name").notEmpty().withMessage("Category name is required."),
+  body("name").notEmpty().withMessage("El nombre de la categoría es obligatorio."),
   validationResultHandler,
 ];

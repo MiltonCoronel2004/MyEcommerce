@@ -11,7 +11,6 @@ const RegisterPage = () => {
     password: "",
     repassword: "",
   });
-  const [error, setError] = useState(null);
   const register = useAuthStore((state) => state.register);
   const navigate = useNavigate();
 
@@ -21,19 +20,9 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
-    try {
-      await register(formData);
-      alert("Registration successful! Please log in.");
+    const res = await register(formData);
+    if (res && !res.error && !res.errors) {
       navigate("/login");
-    } catch (err) {
-      const errors = err.response?.data?.errors;
-      let errorMessage = err.response?.data?.message || "An unexpected error occurred.";
-      if (errors) {
-        errorMessage = errors.map((error) => error.msg).join(", ");
-      }
-      setError(errorMessage);
-      console.error("Registration failed:", errorMessage);
     }
   };
 
@@ -41,20 +30,13 @@ const RegisterPage = () => {
     <div className="min-h-screen bg-slate-900 flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
       <div className="w-full max-w-md">
         <div className="bg-slate-800 border border-slate-700 rounded-lg p-8 shadow-xl">
-          <h2 className="text-3xl font-bold text-white mb-8 text-center">Create Account</h2>
+          <h2 className="text-3xl font-bold text-white mb-8 text-center">Crear Cuenta</h2>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {error && (
-              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 flex items-start gap-3">
-                <AlertCircle className="text-red-400 flex-shrink-0 mt-0.5" size={20} />
-                <p className="text-red-400 text-sm">{error}</p>
-              </div>
-            )}
-
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label htmlFor="firstName" className="block text-sm font-medium text-slate-300 mb-2">
-                  First Name
+                  Nombre
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -66,14 +48,14 @@ const RegisterPage = () => {
                     value={formData.firstName}
                     onChange={handleChange}
                     className="w-full bg-slate-700 border border-slate-600 rounded-lg py-3 pl-10 pr-4 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
-                    placeholder="John"
+                    placeholder="Juan"
                   />
                 </div>
               </div>
 
               <div>
                 <label htmlFor="lastName" className="block text-sm font-medium text-slate-300 mb-2">
-                  Last Name
+                  Apellido
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -85,7 +67,7 @@ const RegisterPage = () => {
                     value={formData.lastName}
                     onChange={handleChange}
                     className="w-full bg-slate-700 border border-slate-600 rounded-lg py-3 pl-10 pr-4 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
-                    placeholder="Doe"
+                    placeholder="Pérez"
                   />
                 </div>
               </div>
@@ -93,7 +75,7 @@ const RegisterPage = () => {
 
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
-                Email address
+                Dirección de Correo Electrónico
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -112,7 +94,7 @@ const RegisterPage = () => {
 
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
-                Password
+                Contraseña
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -131,7 +113,7 @@ const RegisterPage = () => {
 
             <div>
               <label htmlFor="repassword" className="block text-sm font-medium text-slate-300 mb-2">
-                Confirm Password
+                Confirmar Contraseña
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -152,15 +134,15 @@ const RegisterPage = () => {
               type="submit"
               className="w-full px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-semibold transition-all hover:shadow-lg hover:shadow-emerald-500/30 mt-6"
             >
-              Register
+              Registrarse
             </button>
           </form>
 
           <div className="mt-6 text-center">
             <p className="text-slate-400 text-sm">
-              Already have an account?{" "}
+              ¿Ya tienes una cuenta?{" "}
               <Link to="/login" className="text-emerald-400 hover:text-emerald-300 font-medium transition-colors">
-                Sign in here
+                Inicia sesión aquí
               </Link>
             </p>
           </div>

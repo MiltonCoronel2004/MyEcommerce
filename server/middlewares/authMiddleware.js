@@ -2,13 +2,10 @@ import jwt from "jsonwebtoken";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_default_secret";
 
-export const protect = (req, res, next) => {
+export const authMiddleware = (req, res, next) => {
   let token;
 
-  if (
-    req.headers.authorization &&
-    req.headers.authorization.startsWith("Bearer")
-  ) {
+  if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
     try {
       // Get token from header
       token = req.headers.authorization.split(" ")[1];
@@ -17,7 +14,7 @@ export const protect = (req, res, next) => {
       const decoded = jwt.verify(token, JWT_SECRET);
 
       // Attach user to the request
-      req.user = decoded.user;
+      req.authInfo = decoded;
       next();
     } catch (error) {
       console.error(error);
@@ -32,7 +29,7 @@ export const protect = (req, res, next) => {
 
 // Optional: Middleware to restrict to certain roles
 export const admin = (req, res, next) => {
-  if (req.user && req.user.role === "admin") {
+  if (req.authInfo && req.authInfo.role === "admin") {
     next();
   } else {
     res.status(403).json({ message: "Not authorized as an admin" });

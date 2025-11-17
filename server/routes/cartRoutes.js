@@ -1,35 +1,15 @@
 import express from "express";
 import * as cartController from "../controllers/cartController.js";
-import { protect } from "../middlewares/authMiddleware.js";
+import { authMiddleware } from "../middlewares/authMiddleware.js";
+import { cartItemValidator, cartUpdateValidator } from "../middlewares/validators/cartValidator.js";
 
-import {
-  cartItemValidator,
-  cartUpdateValidator,
-} from "../middlewares/validators/cartValidator.js";
+const cartRoutes = express.Router();
 
-const router = express.Router();
+cartRoutes.use(authMiddleware);
+cartRoutes.get("/", cartController.get);
+cartRoutes.post("/add", cartItemValidator, cartController.add);
+cartRoutes.put("/update/:productId", cartUpdateValidator, cartController.update);
+cartRoutes.delete("/remove/:productId", cartController.remove);
+cartRoutes.delete("/clear", cartController.clear);
 
-// All routes in this file are protected
-router.use(protect);
-
-// @desc    Get user's cart
-// @route   GET /api/cart
-router.get("/", cartController.get);
-
-// @desc    Add product to cart
-// @route   POST /api/cart/add
-router.post("/add", cartItemValidator, cartController.add);
-
-// @desc    Update product quantity in cart
-// @route   PUT /api/cart/update/:productId
-router.put("/update/:productId", cartUpdateValidator, cartController.update);
-
-// @desc    Remove product from cart
-// @route   DELETE /api/cart/remove/:productId
-router.delete("/remove/:productId", cartController.remove);
-
-// @desc    Clear user's cart
-// @route   DELETE /api/cart/clear
-router.delete("/clear", cartController.clear);
-
-export default router;
+export default cartRoutes;

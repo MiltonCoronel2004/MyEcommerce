@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from "react";
-import apiClient from "../../services/api";
+import useAuthStore from "../../store/authStore";
 import ProductFormModal from "../../components/Admin/ProductFormModal";
 import { Plus, Edit, Trash2, Package } from "lucide-react";
+import { toast } from "react-toastify";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 const ProductListPage = () => {
+  const { token } = useAuthStore();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -14,10 +18,12 @@ const ProductListPage = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await apiClient.get("/products");
-      setProducts(response.data);
+      const res = await fetch(`${API_URL}/products`);
+      if (!res.ok) throw new Error("Failed to fetch products");
+      const data = await res.json();
+      setProducts(data);
     } catch (err) {
-      setError(err.response?.data?.message || err.message);
+      setError(err.message);
     } finally {
       setLoading(false);
     }
@@ -39,31 +45,54 @@ const ProductListPage = () => {
 
   const handleSave = async (productData) => {
     try {
-      if (editingProduct) {
-        await apiClient.put(`/products/${editingProduct.id}`, productData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-      } else {
-        await apiClient.post("/products", productData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
+      const url = editingProduct
+        ? `${API_URL}/products/${editingProduct.id}`
+        : `${API_URL}/products`;
+      
+      const method = editingProduct ? "PUT" : "POST";
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+        body: productData,
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to save product");
       }
+
+      toast.success(`Producto ${editingProduct ? 'actualizado' : 'creado'} con éxito!`);
       fetchProducts();
       handleCloseModal();
     } catch (error) {
-      console.error("Failed to save product:", error);
-      alert(`Failed to save product: ${error.response?.data?.message || error.message}`);
+      console.error("Error saving product:", error);
+      toast.error(`Error al guardar el producto: ${error.message}`);
     }
   };
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
       try {
-        await apiClient.delete(`/products/${id}`);
+        const res = await fetch(`${API_URL}/products/${id}`, {
+          method: "DELETE",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+        });
+
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.message || "Failed to delete product");
+        }
+        
+        toast.success("Producto eliminado con éxito!");
         fetchProducts();
       } catch (error) {
-        console.error("Failed to delete product:", error);
-        alert(`Failed to delete product: ${error.response?.data?.message || error.message}`);
+        console.error("Error deleting product:", error);
+        toast.error(`Error al eliminar el producto: ${error.message}`);
       }
     }
   };
@@ -93,16 +122,16 @@ const ProductListPage = () => {
           <div>
             <h1 className="text-4xl font-bold text-white mb-2 tracking-tight flex items-center gap-3">
               <Package className="text-emerald-400" size={36} />
-              Product Management
+              Gestión de Productos
             </h1>
-            <p className="text-slate-400">Manage your product catalog</p>
+            <p className="text-slate-400">Gestiona tu catálogo de productos</p>
           </div>
           <button
             onClick={() => handleOpenModal()}
             className="flex items-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-semibold transition-all hover:shadow-lg hover:shadow-emerald-500/30"
           >
             <Plus size={20} />
-            Create New Product
+            Crear Nuevo Producto
           </button>
         </div>
 
@@ -114,11 +143,11 @@ const ProductListPage = () => {
               <thead className="bg-slate-700/50 border-b border-slate-600">
                 <tr>
                   <th className="text-left px-6 py-4 text-sm font-semibold text-slate-300">ID</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-slate-300">Name</th>
+                  <th className="text-left px-6 py-4 text-sm font-semibold text-slate-300">Nombre</th>
                   <th className="text-left px-6 py-4 text-sm font-semibold text-slate-300">SKU</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-slate-300">Price</th>
-                  <th className="text-left px-6 py-4 text-sm font-semibold text-slate-300">Stock</th>
-                  <th className="text-right px-6 py-4 text-sm font-semibold text-slate-300">Actions</th>
+                  <th className="text-left px-6 py-4 text-sm font-semibold text-slate-300">Precio</th>
+                  <th className="text-left px-6 py-4 text-sm font-semibold text-slate-300">Existencias</th>
+                  <th className="text-right px-6 py-4 text-sm font-semibold text-slate-300">Acciones</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-700">
@@ -139,7 +168,7 @@ const ProductListPage = () => {
                               : "bg-red-500/10 text-red-400 border border-red-500/20"
                           }`}
                         >
-                          {product.stock} units
+                          {product.stock} unidades
                         </span>
                       </td>
                       <td className="px-6 py-4">
@@ -147,14 +176,14 @@ const ProductListPage = () => {
                           <button
                             onClick={() => handleOpenModal(product)}
                             className="p-2 text-slate-400 hover:text-emerald-400 hover:bg-slate-700 rounded-lg transition-all"
-                            title="Edit"
+                            title="Editar"
                           >
                             <Edit size={18} />
                           </button>
                           <button
                             onClick={() => handleDelete(product.id)}
                             className="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded-lg transition-all"
-                            title="Delete"
+                            title="Eliminar"
                           >
                             <Trash2 size={18} />
                           </button>
@@ -165,7 +194,7 @@ const ProductListPage = () => {
                 ) : (
                   <tr>
                     <td colSpan="6" className="px-6 py-12 text-center text-slate-400">
-                      No products found. Create your first product to get started.
+                      No se encontraron productos. Crea tu primer producto para empezar.
                     </td>
                   </tr>
                 )}

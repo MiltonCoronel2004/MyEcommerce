@@ -1,12 +1,16 @@
-import React from 'react';
-import { Navigate, Outlet } from 'react-router';
-import useAuthStore from '../store/authStore';
+import React from "react";
+import { Navigate, Outlet } from "react-router";
+import useAuthStore from "../store/authStore";
 
 const PublicRoute = () => {
-  const { isAuthenticated } = useAuthStore();
+  const { user } = useAuthStore();
 
-  // If authenticated, redirect to the dashboard. Otherwise, render the child public route.
-  return isAuthenticated ? <Navigate to="/dashboard" replace /> : <Outlet />;
+  if (user) {
+    if (user?.role === "admin") return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
 };
 
 export default PublicRoute;

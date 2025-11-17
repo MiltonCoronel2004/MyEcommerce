@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-
 import { X, Package, DollarSign, Hash, Image, FileText, Tag } from "lucide-react";
 
 const ProductFormModal = ({ product, onClose, onSave }) => {
@@ -55,9 +54,7 @@ const ProductFormModal = ({ product, onClose, onSave }) => {
       productData.append(key, formData[key]);
     });
 
-    if (imageFile) {
-      productData.append("image", imageFile);
-    }
+    if (imageFile) productData.append("image", imageFile);
 
     onSave(productData);
   };
@@ -68,7 +65,7 @@ const ProductFormModal = ({ product, onClose, onSave }) => {
         <div className="bg-slate-800 border-b border-slate-700 px-6 py-4 flex items-center justify-between rounded-t-lg flex-shrink-0">
           <h2 className="text-2xl font-bold text-white flex items-center gap-2">
             <Package className="text-emerald-400" size={24} />
-            {product ? "Edit Product" : "Create Product"}
+            {product ? "Editar Producto" : "Crear Producto"}
           </h2>
           <button onClick={onClose} className="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-all">
             <X size={24} />
@@ -79,7 +76,7 @@ const ProductFormModal = ({ product, onClose, onSave }) => {
           <form onSubmit={handleSubmit} className="p-6 space-y-6">
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-slate-300 mb-2">
-                Product Name *
+                Nombre del Producto *
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -92,14 +89,14 @@ const ProductFormModal = ({ product, onClose, onSave }) => {
                   value={formData.name}
                   onChange={handleChange}
                   className="w-full bg-slate-700 border border-slate-600 rounded-lg py-3 pl-10 pr-4 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
-                  placeholder="Enter product name"
+                  placeholder="Introduce el nombre del producto"
                 />
               </div>
             </div>
 
             <div>
               <label htmlFor="description" className="block text-sm font-medium text-slate-300 mb-2">
-                Description
+                Descripción
               </label>
               <div className="relative">
                 <div className="absolute top-3 left-3 pointer-events-none">
@@ -112,7 +109,7 @@ const ProductFormModal = ({ product, onClose, onSave }) => {
                   onChange={handleChange}
                   rows="4"
                   className="w-full bg-slate-700 border border-slate-600 rounded-lg py-3 pl-10 pr-4 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all resize-none"
-                  placeholder="Enter product description"
+                  placeholder="Introduce la descripción del producto"
                 ></textarea>
               </div>
             </div>
@@ -140,7 +137,7 @@ const ProductFormModal = ({ product, onClose, onSave }) => {
 
               <div>
                 <label htmlFor="price" className="block text-sm font-medium text-slate-300 mb-2">
-                  Price *
+                  Precio *
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -164,7 +161,7 @@ const ProductFormModal = ({ product, onClose, onSave }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label htmlFor="stock" className="block text-sm font-medium text-slate-300 mb-2">
-                  Stock
+                  Existencias
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -185,7 +182,7 @@ const ProductFormModal = ({ product, onClose, onSave }) => {
 
               <div>
                 <label htmlFor="categoryId" className="block text-sm font-medium text-slate-300 mb-2">
-                  Category ID
+                  ID de Categoría
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -206,19 +203,19 @@ const ProductFormModal = ({ product, onClose, onSave }) => {
 
             <div>
               <label htmlFor="image" className="block text-sm font-medium text-slate-300 mb-2">
-                Product Image
+                Imagen del Producto
               </label>
               <div className="space-y-4">
                 {imagePreview && (
                   <div className="relative w-full h-48 bg-slate-700 border border-slate-600 rounded-lg overflow-hidden">
-                    <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                    <img src={imagePreview} alt="Vista Previa" className="w-full h-full object-cover" />
                   </div>
                 )}
                 <label className="block">
                   <div className="flex items-center justify-center w-full px-4 py-3 bg-slate-700 border-2 border-dashed border-slate-600 rounded-lg cursor-pointer hover:border-emerald-500 hover:bg-slate-700/50 transition-all">
                     <div className="flex items-center gap-2 text-slate-300">
                       <Image size={20} />
-                      <span className="text-sm font-medium">{imageFile ? imageFile.name : "Choose image file"}</span>
+                      <span className="text-sm font-medium">{imageFile ? imageFile.name : "Elegir archivo de imagen"}</span>
                     </div>
                     <input type="file" id="image" name="image" onChange={handleFileChange} accept="image/*" className="hidden" />
                   </div>
@@ -231,14 +228,14 @@ const ProductFormModal = ({ product, onClose, onSave }) => {
                 type="submit"
                 className="flex-1 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-semibold transition-all hover:shadow-lg hover:shadow-emerald-500/30"
               >
-                Save Product
+                Guardar Producto
               </button>
               <button
                 type="button"
                 onClick={onClose}
                 className="flex-1 px-6 py-3 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white border border-slate-600 rounded-lg font-semibold transition-all"
               >
-                Cancel
+                Cancelar
               </button>
             </div>
           </form>
