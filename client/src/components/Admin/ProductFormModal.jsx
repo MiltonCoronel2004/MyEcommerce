@@ -24,7 +24,7 @@ const ProductFormModal = ({ product, onClose, onSave }) => {
         categoryId: product.categoryId || "",
       });
       if (product.imageUrl) {
-        setImagePreview(`http://localhost:3000${product.imageUrl}`);
+        setImagePreview(`http://localhost:3000/uploads/${product.imageUrl}`);
       }
     }
   }, [product]);

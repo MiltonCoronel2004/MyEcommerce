@@ -14,6 +14,7 @@ import DashboardPage from "./pages/Admin/DashboardPage";
 import ProfilePage from "./pages/ProfilePage";
 import CartPage from "./pages/CartPage";
 import ProductListPage from "./pages/Admin/ProductListPage";
+import CategoryListPage from "./pages/Admin/CategoryListPage"; // Import CategoryListPage
 import useAuthStore from "./store/authStore";
 import { useEffect, useState } from "react";
 
@@ -75,6 +76,7 @@ function App() {
           <Route element={<Private />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/admin/products" element={<ProductListPage />} />
+            <Route path="/admin/categories" element={<CategoryListPage />} /> {/* New Admin Category Route */}
           </Route>
         </Route>
       </Routes>

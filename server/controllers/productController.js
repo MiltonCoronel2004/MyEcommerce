@@ -39,7 +39,7 @@ export const create = async (req, res) => {
   try {
     const productData = { ...req.body };
     if (req.file) {
-      productData.imageUrl = `/uploads/${req.file.filename}`;
+      productData.imageUrl = `${req.file.filename}`;
     }
     const newProduct = await Product.create(productData);
     res.status(201).json(newProduct);
@@ -60,7 +60,7 @@ export const update = async (req, res) => {
     if (req.file) {
         updateData.imageUrl = `/uploads/${req.file.filename}`;
     }
-    
+
     const updatedProduct = await product.update(updateData);
     res.json(updatedProduct);
   } catch (error) {

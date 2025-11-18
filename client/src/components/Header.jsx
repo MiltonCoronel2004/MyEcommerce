@@ -6,6 +6,7 @@ import {
   LogOut,
   Settings,
   LayoutDashboard,
+  List, // Added List icon for categories
 } from "lucide-react";
 
 const Header = () => {
@@ -46,6 +47,15 @@ const Header = () => {
                   >
                     <Settings size={20} />
                     <span className="hidden sm:inline">Gestionar Productos</span>
+                  </Link>
+
+                  {/* New link for Gestionar Categorías */}
+                  <Link
+                    to="/admin/categories"
+                    className="flex items-center gap-2 px-3 py-2 bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/20 hover:border-emerald-500/40 rounded-lg transition-all"
+                  >
+                    <List size={20} />
+                    <span className="hidden sm:inline">Gestionar Categorías</span>
                   </Link>
                 </>
               )}

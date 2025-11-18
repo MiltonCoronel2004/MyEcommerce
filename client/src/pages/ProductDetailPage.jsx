@@ -87,7 +87,7 @@ const ProductDetailPage = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           <div className="bg-slate-800 border border-slate-700 rounded-lg p-8 flex items-center justify-center">
-            <img src={product.imageUrl ? `${API_URL}${product.imageUrl}` : `https://i.imgur.com/1q2h3p5.png`} alt={product.name} className="max-w-full h-auto rounded-lg" />
+            <img src={product.imageUrl ? `http://localhost:3000/uploads/${product.imageUrl}` : `https://i.imgur.com/1q2h3p5.png`} alt={product.name} className="max-w-full h-auto rounded-lg" />
           </div>
 
           <div className="space-y-6">

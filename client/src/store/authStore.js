@@ -71,15 +71,20 @@ const useAuthStore = create(
         }
 
         try {
-          const res = await fetch(`${API_URL}/users/verify/${token}`);
+          const res = await fetch(`${API_URL}/users/profile`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
 
           const data = await res.json();
-          if (data.error) {
-            set({ user: null, token: null });
+          if (res.ok) {
+            set({ user: data });
+            return true;
+          } else {
+            get().logout();
             return false;
           }
-
-          return true;
         } catch (error) {
           get().logout();
         }
