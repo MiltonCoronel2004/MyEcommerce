@@ -5,10 +5,7 @@ import path from "path";
 const storage = multer.diskStorage({
   destination: "./uploads/",
   filename: function (req, file, cb) {
-    cb(
-      null,
-      file.fieldname + "-" + Date.now() + path.extname(file.originalname)
-    );
+    cb(null, file.fieldname + "-" + Date.now() + path.extname(file.originalname));
   },
 });
 
@@ -31,7 +28,7 @@ function checkFileType(file, cb) {
 // Init upload
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 1000000 }, // 1MB limit
+  // limits: { fileSize: 1000000 }, // 1MB limit
   fileFilter: function (req, file, cb) {
     checkFileType(file, cb);
   },

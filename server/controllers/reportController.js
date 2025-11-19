@@ -9,7 +9,7 @@ export const downloadOrdersReport = async (req, res) => {
   try {
     const format = req.query.format || "csv";
     if (format !== "csv" && format !== "excel") {
-      return res.status(400).json({ message: "Invalid format. Must be 'csv' or 'excel'." });
+      return res.status(400).json({ error: true, msg: "Invalid format. Must be 'csv' or 'excel'." });
     }
 
     const orders = await Order.findAll({
@@ -29,9 +29,7 @@ export const downloadOrdersReport = async (req, res) => {
       orderDate: order.createdAt.toISOString().split("T")[0],
       shippingAddress: `${order.shippingAddress}, ${order.shippingCity}, ${order.shippingState} ${order.shippingPostalCode}`,
       itemCount: order.OrderItems.length,
-      items: order.OrderItems.map(
-        (item) => `${item.Product.name} (Qty: ${item.quantity})`
-      ).join(", "),
+      items: order.OrderItems.map((item) => `${item.Product.name} (Qty: ${item.quantity})`).join(", "),
     }));
 
     const timestamp = new Date().toISOString().replace(/:/g, "-");
@@ -44,7 +42,8 @@ export const downloadOrdersReport = async (req, res) => {
       data = json2csvParser.parse(reportData);
       contentType = "text/csv";
       fileName = `orders-report-${timestamp}.csv`;
-    } else { // excel
+    } else {
+      // excel
       const workbook = new excel.Workbook();
       const worksheet = workbook.addWorksheet("Orders Report");
 
@@ -71,8 +70,7 @@ export const downloadOrdersReport = async (req, res) => {
     res.setHeader("Content-Type", contentType);
     res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
     res.send(data);
-
   } catch (error) {
-    res.status(500).json({ message: "Error generating report", error: error.message });
+    res.status(500).json({ error: true, msg: "Error generating report", error: error.message });
   }
 };

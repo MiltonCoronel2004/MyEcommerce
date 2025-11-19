@@ -6,7 +6,6 @@ const AdminRoute = () => {
   const { user } = useAuthStore();
 
   if (!user) return <Navigate to="/login" replace />;
-  console.log(user);
   if (user?.role !== "admin") return <Navigate to="/" replace />;
 
   return <Outlet />;

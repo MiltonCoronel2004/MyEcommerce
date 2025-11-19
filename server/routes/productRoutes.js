@@ -4,32 +4,18 @@ import { authMiddleware, admin } from "../middlewares/authMiddleware.js";
 
 import upload from "../middlewares/uploadMiddleware.js";
 import { createProductValidator, updateProductValidator } from "../middlewares/validators/productValidator.js";
+import { validationResultHandler } from "../middlewares/errorMiddleware.js";
 
 const router = express.Router();
 
-// @desc    Fetch all products
-// @route   GET /api/products
-// @access  Public
 router.get("/", productController.getAll);
 
-// @desc    Fetch single product
-// @route   GET /api/products/:id
-// @access  Public
 router.get("/:id", productController.getById);
 
-// @desc    Create a product
-// @route   POST /api/products
-// @access  Private/Admin
-router.post("/", authMiddleware, admin, upload, createProductValidator, productController.create);
+router.post("/", authMiddleware, admin, upload, createProductValidator, validationResultHandler, productController.create);
 
-// @desc    Update a product
-// @route   PUT /api/products/:id
-// @access  Private/Admin
-router.put("/:id", authMiddleware, admin, upload, updateProductValidator, productController.update);
+router.put("/:id", authMiddleware, admin, upload, updateProductValidator, validationResultHandler, productController.update);
 
-// @desc    Delete a product
-// @route   DELETE /api/products/:id
-// @access  Private/Admin
 router.delete("/:id", authMiddleware, admin, productController.remove);
 
 export default router;

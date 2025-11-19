@@ -1,42 +1,34 @@
-import React, { useState, useEffect } from "react";
-import { PlusCircle, Edit, Trash2, AlertCircle, CheckCircle } from "lucide-react";
-import useAuthStore from "../../store/authStore";
-import CategoryFormModal from "../../components/Admin/CategoryFormModal"; // Import the modal
+import React, { useState, useEffect, useCallback } from "react";
+import { PlusCircle, Edit, Trash2 } from "lucide-react";
+import { toast } from "react-toastify";
+import api from "../../services/api";
+import CategoryFormModal from "../../components/Admin/CategoryFormModal";
 
 const CategoryListPage = () => {
-  const { token } = useAuthStore();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-
-  // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
 
-  const fetchCategories = async () => {
+  const fetchCategories = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch("http://localhost:3000/api/categories");
-      if (!res.ok) throw new Error("Failed to fetch categories");
-      const data = await res.json();
+      const data = await api("/categories");
       setCategories(data);
     } catch (err) {
-      setError(err.message || "Error al cargar las categorías.");
+      toast.error(err.message || "Error al cargar las categorías.");
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchCategories();
-  }, []);
+  }, [fetchCategories]);
 
   const handleOpenModal = (category = null) => {
     setEditingCategory(category);
     setIsModalOpen(true);
-    setError(null);
-    setSuccess(null);
   };
 
   const handleCloseModal = () => {
@@ -44,54 +36,18 @@ const CategoryListPage = () => {
     setIsModalOpen(false);
   };
 
-  const handleSave = async (formData) => {
-    const isEditing = !!editingCategory;
-    const url = isEditing
-      ? `http://localhost:3000/api/categories/${editingCategory.id}`
-      : "http://localhost:3000/api/categories";
-    const method = isEditing ? "PUT" : "POST";
-
-    try {
-      const res = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.msg || (isEditing ? "Error al actualizar" : "Error al crear"));
-      }
-
-      setSuccess(`Categoría ${isEditing ? "actualizada" : "creada"} con éxito.`);
-      handleCloseModal();
-      fetchCategories(); // Refresh the list
-    } catch (err) {
-      setError(err.message);
-    }
-  };
-
   const handleDelete = async (categoryId) => {
     if (!window.confirm("¿Estás seguro de que quieres eliminar esta categoría?")) {
       return;
     }
     try {
-      const res = await fetch(`http://localhost:3000/api/categories/${categoryId}`, {
+      await api(`/categories/${categoryId}`, {
         method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
       });
-      if (!res.ok) {
-        throw new Error("Failed to delete category");
-      }
-      setSuccess("Categoría eliminada con éxito.");
-      fetchCategories(); // Refresh the list
+      toast.success("Categoría eliminada con éxito.");
+      fetchCategories();
     } catch (err) {
-      setError(err.message || "Error al eliminar la categoría.");
+      toast.error(err.message || "Error al eliminar la categoría.");
     }
   };
 
@@ -117,20 +73,6 @@ const CategoryListPage = () => {
               Nueva Categoría
             </button>
           </div>
-
-          {error && (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 flex items-start gap-3 mb-6">
-              <AlertCircle className="text-red-400 flex-shrink-0 mt-0.5" size={20} />
-              <p className="text-red-400 text-sm">{error}</p>
-            </div>
-          )}
-
-          {success && (
-            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4 flex items-start gap-3 mb-6">
-              <CheckCircle className="text-emerald-400 flex-shrink-0 mt-0.5" size={20} />
-              <p className="text-emerald-400 text-sm">{success}</p>
-            </div>
-          )}
 
           <div className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
             <table className="min-w-full divide-y divide-slate-700">
@@ -160,26 +102,14 @@ const CategoryListPage = () => {
                 ) : (
                   categories.map((category) => (
                     <tr key={category.id} className="hover:bg-slate-700 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
-                        {category.id}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-                        {category.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-                        {category.description}
-                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{category.id}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">{category.name}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">{category.description}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button
-                          onClick={() => handleOpenModal(category)}
-                          className="text-emerald-400 hover:text-emerald-300 mr-3"
-                        >
+                        <button onClick={() => handleOpenModal(category)} className="text-emerald-400 hover:text-emerald-300 mr-3">
                           <Edit size={20} />
                         </button>
-                        <button
-                          onClick={() => handleDelete(category.id)}
-                          className="text-red-400 hover:text-red-300"
-                        >
+                        <button onClick={() => handleDelete(category.id)} className="text-red-400 hover:text-red-300">
                           <Trash2 size={20} />
                         </button>
                       </td>
@@ -191,16 +121,9 @@ const CategoryListPage = () => {
           </div>
         </div>
       </div>
-      {isModalOpen && (
-        <CategoryFormModal
-          category={editingCategory}
-          onClose={handleCloseModal}
-          onSave={handleSave}
-        />
-      )}
+      {isModalOpen && <CategoryFormModal category={editingCategory} onClose={handleCloseModal} onSaveSuccess={fetchCategories} />}
     </>
   );
 };
 
 export default CategoryListPage;
-

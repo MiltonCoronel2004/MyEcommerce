@@ -1,52 +1,41 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "react-toastify";
 import useAuthStore from "../store/authStore";
 import { ShoppingCart, Trash2, Minus, Plus } from "lucide-react";
-
-const API_URL = import.meta.env.VITE_API_URL;
+import api from "../services/api";
 
 const CartPage = () => {
   const [cart, setCart] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const navigate = useNavigate();
   const { token } = useAuthStore();
 
-  const fetchCart = async () => {
+  const fetchCart = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/cart`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error("Failed to fetch cart");
-      const data = await res.json();
+      const data = await api("/cart");
       setCart(data);
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     if (token) {
       fetchCart();
     }
-  }, [token]);
+  }, [token, fetchCart]);
 
   const handleUpdateQuantity = async (productId, quantity) => {
     if (quantity < 1) return;
     try {
-      const res = await fetch(`${API_URL}/cart/update/${productId}`, {
+      await api(`/cart/update/${productId}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({ quantity }),
       });
-      if (!res.ok) throw new Error("Failed to update quantity");
       fetchCart();
     } catch (err) {
       toast.error(`Error al actualizar la cantidad: ${err.message}`);
@@ -62,11 +51,9 @@ const CartPage = () => {
 
   const handleRemoveProduct = async (productId) => {
     try {
-      const res = await fetch(`${API_URL}/cart/remove/${productId}`, {
+      await api(`/cart/remove/${productId}`, {
         method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("Failed to remove product");
       toast.success("Producto eliminado del carrito.");
       fetchCart();
     } catch (err) {
@@ -76,14 +63,9 @@ const CartPage = () => {
 
   const handleCheckout = async () => {
     try {
-      const res = await fetch(`${API_URL}/orders`, {
+      await api("/orders", {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "No se pudo realizar el pedido.");
-      }
       toast.success("¡Pedido realizado con éxito!");
       navigate("/profile"); // Navigate to profile to see orders
     } catch (err) {
@@ -95,16 +77,6 @@ const CartPage = () => {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-emerald-500"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="bg-slate-800 border border-red-500/20 rounded-lg p-6 max-w-md">
-          <p className="text-red-400 text-center">Error: {error}</p>
-        </div>
       </div>
     );
   }

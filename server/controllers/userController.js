@@ -34,10 +34,7 @@ export const register = async (req, res) => {
       passwordHash,
     });
 
-    const userJson = user.toJSON();
-    delete userJson.passwordHash;
-
-    res.status(201).json({ msg: "Usuario registrado con éxito", user: userJson });
+    res.status(201).json({ msg: "Usuario registrado con éxito", user });
   } catch (error) {
     res.status(400).json({ msg: error.message });
   }

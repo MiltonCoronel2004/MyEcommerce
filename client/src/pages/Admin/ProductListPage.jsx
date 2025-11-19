@@ -1,37 +1,30 @@
-import React, { useEffect, useState } from "react";
-import useAuthStore from "../../store/authStore";
+import React, { useEffect, useState, useCallback } from "react";
 import ProductFormModal from "../../components/Admin/ProductFormModal";
 import { Plus, Edit, Trash2, Package } from "lucide-react";
 import { toast } from "react-toastify";
-
-const API_URL = import.meta.env.VITE_API_URL;
+import api from "../../services/api";
 
 const ProductListPage = () => {
-  const { token } = useAuthStore();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
 
-  const fetchProducts = async () => {
+  const fetchProducts = useCallback(async () => {
     setLoading(true);
-    setError(null);
     try {
-      const res = await fetch(`${API_URL}/products`);
-      if (!res.ok) throw new Error("Failed to fetch products");
-      const data = await res.json();
+      const data = await api("/products");
       setProducts(data);
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchProducts();
-  }, []);
+  }, [fetchProducts]);
 
   const handleOpenModal = (product = null) => {
     setEditingProduct(product);
@@ -45,30 +38,28 @@ const ProductListPage = () => {
 
   const handleSave = async (productData) => {
     try {
-      const url = editingProduct
-        ? `${API_URL}/products/${editingProduct.id}`
-        : `${API_URL}/products`;
-      
+      const url = editingProduct ? `/products/${editingProduct.id}` : "/products";
       const method = editingProduct ? "PUT" : "POST";
 
-      const res = await fetch(url, {
+      const data = await api(url, {
         method,
-        headers: {
-          "Authorization": `Bearer ${token}`,
-        },
         body: productData,
       });
+      console.log(data);
+      if (data.error || data.errors) {
+        if (Array.isArray(data.errors) && data.errors.length > 0)
+          data.errors.forEach((e) => toast.error(typeof e === "string" ? e : e.msg || JSON.stringify(e)));
+        else if (data.msg) toast.error(data.msg);
+        else if (data.message) toast.error(data.msg);
+        else toast.error("Ocurrió un error desconocido");
 
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to save product");
+        return;
       }
 
-      toast.success(`Producto ${editingProduct ? 'actualizado' : 'creado'} con éxito!`);
+      toast.success(`Producto ${editingProduct ? "actualizado" : "creado"} con éxito!`);
       fetchProducts();
       handleCloseModal();
     } catch (error) {
-      console.error("Error saving product:", error);
       toast.error(`Error al guardar el producto: ${error.message}`);
     }
   };
@@ -76,22 +67,13 @@ const ProductListPage = () => {
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
       try {
-        const res = await fetch(`${API_URL}/products/${id}`, {
+        await api(`/products/${id}`, {
           method: "DELETE",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-          },
         });
 
-        if (!res.ok) {
-          const errorData = await res.json();
-          throw new Error(errorData.message || "Failed to delete product");
-        }
-        
         toast.success("Producto eliminado con éxito!");
         fetchProducts();
       } catch (error) {
-        console.error("Error deleting product:", error);
         toast.error(`Error al eliminar el producto: ${error.message}`);
       }
     }
@@ -101,16 +83,6 @@ const ProductListPage = () => {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-emerald-500"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="bg-slate-800 border border-red-500/20 rounded-lg p-6 max-w-md">
-          <p className="text-red-400 text-center">Error: {error}</p>
-        </div>
       </div>
     );
   }
@@ -175,14 +147,14 @@ const ProductListPage = () => {
                         <div className="flex items-center justify-end gap-2">
                           <button
                             onClick={() => handleOpenModal(product)}
-                            className="p-2 text-slate-400 hover:text-emerald-400 hover:bg-slate-700 rounded-lg transition-all"
+                            className="p-2 text-emerald-400 hover:bg-slate-700 rounded-lg transition-all"
                             title="Editar"
                           >
                             <Edit size={18} />
                           </button>
                           <button
                             onClick={() => handleDelete(product.id)}
-                            className="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded-lg transition-all"
+                            className="p-2 text-red-400 hover:bg-slate-700 rounded-lg transition-all"
                             title="Eliminar"
                           >
                             <Trash2 size={18} />

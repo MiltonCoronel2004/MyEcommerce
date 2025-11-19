@@ -27,7 +27,7 @@ export const get = async (req, res) => {
     });
     res.json(fullCart);
   } catch (error) {
-    res.status(500).json({ message: "Error al recuperar el carrito", error: error.message });
+    res.status(500).json({ error: true, msg: "Error al recuperar el carrito", error: error.message });
   }
 };
 
@@ -35,17 +35,17 @@ export const add = async (req, res) => {
   try {
     const { productId, quantity } = req.body;
     if (!productId || !quantity) {
-      return res.status(400).json({ message: "El ID del producto y la cantidad son obligatorios" });
+      return res.status(400).json({ error: true, msg: "El ID del producto y la cantidad son obligatorios" });
     }
 
     const cart = await getOrCreateCart(req.authInfo.id);
     const product = await Product.findByPk(productId);
 
     if (!product) {
-      return res.status(404).json({ message: "Producto no encontrado" });
+      return res.status(404).json({ error: true, msg: "Producto no encontrado" });
     }
     if (product.stock < quantity) {
-      return res.status(400).json({ message: "No hay suficiente stock disponible" });
+      return res.status(400).json({ error: true, msg: "No hay suficiente stock disponible" });
     }
 
     let cartItem = await CartItem.findOne({
@@ -63,9 +63,9 @@ export const add = async (req, res) => {
       });
     }
 
-    res.status(201).json({ message: "Producto añadido al carrito", item: cartItem });
+    res.status(201).json({ error: true, msg: "Producto añadido al carrito", item: cartItem });
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ error: true, msg: error.message });
   }
 };
 
@@ -74,7 +74,7 @@ export const update = async (req, res) => {
     const { productId } = req.params;
     const { quantity } = req.body;
     if (quantity === undefined) {
-      return res.status(400).json({ message: "La cantidad es obligatoria" });
+      return res.status(400).json({ error: true, msg: "La cantidad es obligatoria" });
     }
 
     const cart = await getOrCreateCart(req.authInfo.id);
@@ -83,23 +83,23 @@ export const update = async (req, res) => {
     });
 
     if (!cartItem) {
-      return res.status(404).json({ message: "Producto no encontrado en el carrito" });
+      return res.status(404).json({ error: true, msg: "Producto no encontrado en el carrito" });
     }
 
     if (quantity <= 0) {
       await cartItem.destroy();
-      return res.json({ message: "Producto eliminado del carrito" });
+      return res.json({ error: false, messsage: "Producto eliminado del carrito" });
     } else {
       const product = await Product.findByPk(productId);
       if (product.stock < quantity) {
-        return res.status(400).json({ message: "No hay suficiente stock disponible" });
+        return res.status(400).json({ error: true, msg: "No hay suficiente stock disponible" });
       }
       cartItem.quantity = quantity;
       await cartItem.save();
       return res.json(cartItem);
     }
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    res.status(400).json({ error: true, msg: error.message });
   }
 };
 
@@ -112,13 +112,13 @@ export const remove = async (req, res) => {
     });
 
     if (!cartItem) {
-      return res.status(404).json({ message: "Producto no encontrado en el carrito" });
+      return res.status(404).json({ error: true, msg: "Producto no encontrado en el carrito" });
     }
 
     await cartItem.destroy();
-    res.json({ message: "Producto eliminado del carrito" });
+    res.json({ error: false, messsage: "Producto eliminado del carrito" });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ error: true, msg: error.message });
   }
 };
 
@@ -126,8 +126,8 @@ export const clear = async (req, res) => {
   try {
     const cart = await getOrCreateCart(req.authInfo.id);
     await CartItem.destroy({ where: { cartId: cart.id } });
-    res.json({ message: "Carrito vaciado con éxito" });
+    res.json({ error: false, messsage: "Carrito vaciado con éxito" });
   } catch (error) {
-    res.status(500).json({ message: "Error al vaciar el carrito", error: error.message });
+    res.status(500).json({ error: true, msg: "Error al vaciar el carrito", error: error.message });
   }
 };

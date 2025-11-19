@@ -1,14 +1,20 @@
 import { body, validationResult } from "express-validator";
-
-const validationResultHandler = (req, res, next) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-  next();
-};
+import Category from "../../models/Category.js";
 
 export const categoryValidator = [
-  body("name").notEmpty().withMessage("El nombre de la categoría es obligatorio."),
-  validationResultHandler,
+  body("name")
+    .trim()
+    .notEmpty()
+    .withMessage("El nombre de la categoría es obligatorio.")
+    .custom(async (name, { req }) => {
+      const category = await Category.findOne({ where: { name } });
+      if (category) {
+        if (req.params.id && category.id === parseInt(req.params.id, 10)) {
+          return true;
+        }
+        throw new Error("La categoría ya existe");
+      }
+      return true;
+    }),
+  body("description").optional().trim().isString().withMessage("La descripción debe ser texto."),
 ];

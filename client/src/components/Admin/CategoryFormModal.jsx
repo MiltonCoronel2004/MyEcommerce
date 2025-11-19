@@ -1,11 +1,14 @@
 import { useState, useEffect } from "react";
 import { X, List, FileText } from "lucide-react";
+import api from "../../services/api";
+import { toast } from "react-toastify";
 
-const CategoryFormModal = ({ category, onClose, onSave }) => {
+const CategoryFormModal = ({ category, onClose, onSaveSuccess }) => {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
   });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (category) {
@@ -20,9 +23,45 @@ const CategoryFormModal = ({ category, onClose, onSave }) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSave(formData);
+    setLoading(true);
+
+    const isEditing = !!category;
+    const url = isEditing ? `/categories/${category.id}` : "/categories/create";
+    const method = isEditing ? "PUT" : "POST";
+
+    try {
+      const data = await api(url, {
+        method,
+        body: JSON.stringify(formData),
+      });
+      if (data.error || data.errors) {
+        if (Array.isArray(data.errors) && data.errors.length > 0)
+          data.errors.forEach((e) => toast.error(typeof e === "string" ? e : e.msg || JSON.stringify(e)));
+        else if (data.msg) toast.error(data.msg);
+        else toast.error("Ocurrió un error desconocido");
+
+        return;
+      }
+
+      toast.success(`Categoría ${isEditing ? "actualizada" : "creada"} con éxito.`);
+      onSaveSuccess();
+      onClose();
+    } catch (err) {
+      try {
+        const errors = JSON.parse(err.message);
+        if (Array.isArray(errors)) {
+          errors.forEach((error) => toast.error(error.msg));
+        } else {
+          toast.error(err.message);
+        }
+      } catch (parseError) {
+        toast.error(err.message);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -55,7 +94,6 @@ const CategoryFormModal = ({ category, onClose, onSave }) => {
                 onChange={handleChange}
                 className="w-full bg-slate-700 border border-slate-600 rounded-lg py-3 pl-10 pr-4 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                 placeholder="Introduce el nombre de la categoría"
-                required
               />
             </div>
           </div>
@@ -83,9 +121,10 @@ const CategoryFormModal = ({ category, onClose, onSave }) => {
           <div className="flex items-center gap-3 pt-4 border-t border-slate-700">
             <button
               type="submit"
-              className="flex-1 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-semibold transition-all hover:shadow-lg hover:shadow-emerald-500/30"
+              disabled={loading}
+              className="flex-1 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-semibold transition-all hover:shadow-lg hover:shadow-emerald-500/30 disabled:bg-slate-600 disabled:cursor-not-allowed flex justify-center items-center"
             >
-              Guardar Categoría
+              {loading ? <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div> : "Guardar Categoría"}
             </button>
             <button
               type="button"

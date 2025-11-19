@@ -14,9 +14,10 @@ import DashboardPage from "./pages/Admin/DashboardPage";
 import ProfilePage from "./pages/ProfilePage";
 import CartPage from "./pages/CartPage";
 import ProductListPage from "./pages/Admin/ProductListPage";
-import CategoryListPage from "./pages/Admin/CategoryListPage"; // Import CategoryListPage
+import CategoryListPage from "./pages/Admin/CategoryListPage";
 import useAuthStore from "./store/authStore";
 import { useEffect, useState } from "react";
+import Loading from "./components/Loading";
 
 function App() {
   const [isInitialized, setIsInitialized] = useState(false);
@@ -31,7 +32,7 @@ function App() {
   }, [validateToken]);
 
   if (!isInitialized) {
-    return <div>Loading...</div>;
+    return <Loading />;
   }
 
   return (
@@ -49,13 +50,11 @@ function App() {
         theme="dark"
       />
       <Routes>
-        {/* Routes available to all users */}
         <Route element={<Public />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/product/:id" element={<ProductDetailPage />} />
         </Route>
 
-        {/* Routes for unauthenticated users only */}
         <Route element={<PublicRoute />}>
           <Route element={<Public />}>
             <Route path="/login" element={<LoginPage />} />
@@ -63,7 +62,6 @@ function App() {
           </Route>
         </Route>
 
-        {/* Private Routes for authenticated users */}
         <Route element={<PrivateRoute />}>
           <Route element={<Private />}>
             <Route path="/profile" element={<ProfilePage />} />
@@ -71,12 +69,11 @@ function App() {
           </Route>
         </Route>
 
-        {/* Admin Routes */}
         <Route element={<AdminRoute />}>
           <Route element={<Private />}>
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/admin/products" element={<ProductListPage />} />
-            <Route path="/admin/categories" element={<CategoryListPage />} /> {/* New Admin Category Route */}
+            <Route path="/admin/categories" element={<CategoryListPage />} />
           </Route>
         </Route>
       </Routes>

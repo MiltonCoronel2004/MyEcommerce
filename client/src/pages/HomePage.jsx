@@ -3,26 +3,22 @@ import { Link, useNavigate } from "react-router";
 import useAuthStore from "../store/authStore";
 import { toast } from "react-toastify";
 import { ShoppingCart } from "lucide-react";
-
-const API_URL = import.meta.env.VITE_API_URL;
+import api from "../services/api";
 
 const HomePage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const { user, token } = useAuthStore();
+  const { user } = useAuthStore();
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        const res = await fetch(`${API_URL}/products`);
-        if (!res.ok) throw new Error("Failed to fetch products");
-        const data = await res.json();
+        const data = await api("/products");
         setProducts(data);
       } catch (err) {
-        setError(err.message);
+        toast.error(err.message);
       } finally {
         setLoading(false);
       }
@@ -39,18 +35,10 @@ const HomePage = () => {
       return;
     }
     try {
-      const res = await fetch(`${API_URL}/cart/add`, {
+      await api("/cart/add", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({ productId, quantity: 1 }),
       });
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to add to cart");
-      }
       const product = products.find((p) => p.id === productId);
       toast.success(`'${product.name}' añadido al carrito!`);
     } catch (err) {
@@ -62,16 +50,6 @@ const HomePage = () => {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-emerald-500"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-        <div className="bg-slate-800 border border-red-500/20 rounded-lg p-6 max-w-md">
-          <p className="text-red-400 text-center">Error: {error}</p>
-        </div>
       </div>
     );
   }
@@ -127,3 +105,4 @@ const HomePage = () => {
 };
 
 export default HomePage;
+

@@ -16,6 +16,7 @@ import categoryRoutes from "./routes/categoryRoutes.js";
 import cartRoutes from "./routes/cartRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import reportRoutes from "./routes/reportRoutes.js";
+import paymentRoutes from "./routes/paymentRoutes.js";
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -41,37 +42,31 @@ app.use(
 
 setupAssociations();
 
-// Custom static file serving with fallback
 app.use("/uploads", (req, res, next) => {
   const filePath = path.join(__dirname, "uploads", req.path);
   const defaultImagePath = path.join(__dirname, "uploads", "computer.png");
 
   fs.access(filePath, fs.constants.F_OK, (err) => {
     if (err) {
-      // File does not exist, serve default image
       res.sendFile(defaultImagePath, (err) => {
         if (err) {
-          // If default image also doesn't exist, pass to 404 handler
           next();
         }
       });
     } else {
-      // File exists, serve it
       res.sendFile(filePath);
     }
   });
 });
 
-
-// API Routes
 app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/payments", paymentRoutes);
 
-// Error Handling Middlewares
 app.use(notFound);
 app.use(errorHandler);
 
@@ -79,8 +74,9 @@ const startServer = async () => {
   try {
     await sequelize.authenticate();
     console.log("Database connection has been established successfully.");
-    await sequelize.sync();
-    console.log("All models were synchronized successfully.");
+    // Temporarily removed sequelize.sync to prevent "Too many keys" error and table truncation.
+    // Ensure your database schema is up-to-date with the models.
+    // For production, consider using database migrations.
     app.listen(PORT, () => {
       console.log(`Server running on port: ${PORT}`);
     });

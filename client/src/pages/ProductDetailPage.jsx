@@ -1,30 +1,27 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router";
 import { toast } from "react-toastify";
 import useAuthStore from "../store/authStore";
 import { ShoppingCart, ArrowLeft, Package, Minus, Plus } from "lucide-react";
-
-const API_URL = import.meta.env.VITE_API_URL;
+import api from "../services/api";
+import Loading from "../components/Loading";
 
 const ProductDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1);
-  const { user, token } = useAuthStore();
+  const { user } = useAuthStore();
 
   useEffect(() => {
     const fetchProductById = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`${API_URL}/products/${id}`);
-        if (!res.ok) throw new Error("Failed to fetch product");
-        const data = await res.json();
+        const data = await api(`/products/${id}`);
         setProduct(data);
       } catch (err) {
-        setError(err.message);
+        toast.error(err.message);
       } finally {
         setLoading(false);
       }
@@ -39,18 +36,10 @@ const ProductDetailPage = () => {
       return;
     }
     try {
-      const res = await fetch(`${API_URL}/cart/add`, {
+      await api("/cart/add", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
         body: JSON.stringify({ productId: product.id, quantity }),
       });
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.message || "Failed to add to cart");
-      }
       toast.success(`${quantity} de ${product.name} añadido(s) al carrito!`);
     } catch (err) {
       toast.error(`Error al añadir al carrito: ${err.message}`);
@@ -66,11 +55,7 @@ const ProductDetailPage = () => {
   };
 
   if (loading) {
-    return <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center">Cargando...</div>;
-  }
-
-  if (error) {
-    return <div className="min-h-screen bg-slate-900 text-red-500 flex items-center justify-center">Error: {error}</div>;
+    return <Loading />;
   }
 
   if (!product) {
@@ -87,7 +72,11 @@ const ProductDetailPage = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           <div className="bg-slate-800 border border-slate-700 rounded-lg p-8 flex items-center justify-center">
-            <img src={product.imageUrl ? `http://localhost:3000/uploads/${product.imageUrl}` : `https://i.imgur.com/1q2h3p5.png`} alt={product.name} className="max-w-full h-auto rounded-lg" />
+            <img
+              src={product.imageUrl ? `http://localhost:3000/uploads/${product.imageUrl}` : `https://i.imgur.com/1q2h3p5.png`}
+              alt={product.name}
+              className="max-w-full h-auto rounded-lg"
+            />
           </div>
 
           <div className="space-y-6">

@@ -5,16 +5,17 @@ import { authMiddleware, admin } from "../middlewares/authMiddleware.js";
 import { registerValidator, loginValidator, passwordUpdateValidator } from "../middlewares/validators/userValidator.js";
 
 import { forgotPasswordValidator, resetPasswordValidator } from "../middlewares/validators/passwordResetValidator.js";
+import { validationResultHandler } from "../middlewares/errorMiddleware.js";
 
 const userRoutes = express.Router();
 
-userRoutes.post("/register", registerValidator, userController.register);
+userRoutes.post("/register", registerValidator, validationResultHandler, userController.register);
 
-userRoutes.post("/login", loginValidator, userController.login);
+userRoutes.post("/login", loginValidator, validationResultHandler, userController.login);
 
-userRoutes.post("/forgotpassword", forgotPasswordValidator, userController.forgotPassword);
+userRoutes.post("/forgotpassword", forgotPasswordValidator, validationResultHandler, userController.forgotPassword);
 
-userRoutes.put("/resetpassword/:token", resetPasswordValidator, userController.resetPassword);
+userRoutes.put("/resetpassword/:token", resetPasswordValidator, validationResultHandler, userController.resetPassword);
 
 userRoutes.get("/verify/:token", userController.verifyToken);
 

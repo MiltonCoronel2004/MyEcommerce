@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { X, Package, DollarSign, Hash, Image, FileText, Tag } from "lucide-react";
+import { getCategories } from "../../services/api";
 
 const ProductFormModal = ({ product, onClose, onSave }) => {
   const [formData, setFormData] = useState({
@@ -12,6 +13,15 @@ const ProductFormModal = ({ product, onClose, onSave }) => {
   });
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const fetchedCategories = await getCategories();
+      if (fetchedCategories) setCategories(fetchedCategories);
+    };
+    fetchCategories();
+  }, []);
 
   useEffect(() => {
     if (product) {
@@ -48,6 +58,10 @@ const ProductFormModal = ({ product, onClose, onSave }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!formData.categoryId) {
+      alert("Por favor, seleccione una categoría.");
+      return;
+    }
     const productData = new FormData();
 
     Object.keys(formData).forEach((key) => {
@@ -182,21 +196,26 @@ const ProductFormModal = ({ product, onClose, onSave }) => {
 
               <div>
                 <label htmlFor="categoryId" className="block text-sm font-medium text-slate-300 mb-2">
-                  ID de Categoría
+                  Categoría
                 </label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Hash className="text-slate-500" size={20} />
                   </div>
-                  <input
-                    type="number"
+                  <select
                     id="categoryId"
                     name="categoryId"
                     value={formData.categoryId}
                     onChange={handleChange}
                     className="w-full bg-slate-700 border border-slate-600 rounded-lg py-3 pl-10 pr-4 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
-                    placeholder="1"
-                  />
+                  >
+                    <option value="">Seleccione una categoría</option>
+                    {categories.map((category) => (
+                      <option key={category.id} value={category.id}>
+                        {category.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
             </div>

@@ -18,20 +18,19 @@ export const authMiddleware = (req, res, next) => {
       next();
     } catch (error) {
       console.error(error);
-      res.status(401).json({ message: "Not authorized, token failed" });
+      res.status(401).json({ error: true, msg: "Not authorized, token failed" });
     }
   }
 
   if (!token) {
-    res.status(401).json({ message: "Not authorized, no token" });
+    res.status(401).json({ error: true, msg: "Not authorized, no token" });
   }
 };
 
-// Optional: Middleware to restrict to certain roles
 export const admin = (req, res, next) => {
   if (req.authInfo && req.authInfo.role === "admin") {
     next();
   } else {
-    res.status(403).json({ message: "Not authorized as an admin" });
+    res.status(403).json({ error: true, msg: "Not authorized as an admin" });
   }
 };

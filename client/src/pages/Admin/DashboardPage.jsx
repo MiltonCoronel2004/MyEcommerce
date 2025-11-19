@@ -1,55 +1,42 @@
 import { useEffect, useState } from "react";
 import useAuthStore from "../../store/authStore";
+import { toast } from "react-toastify";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Package, ShoppingCart, DollarSign, Users, TrendingUp, Activity, Clock } from "lucide-react";
-
-const API_URL = import.meta.env.VITE_API_URL;
+import api from "../../services/api";
+import Loading from "../../components/Loading";
 
 const DashboardPage = () => {
-  const { user, token } = useAuthStore();
+  const { user } = useAuthStore();
   const [stats, setStats] = useState([]);
   const [monthlyData, setmonthlyData] = useState([]);
   const [categoryData, setCategoryData] = useState([]);
   const [orderStatusData, setOrderStatusData] = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
-        const headers = { Authorization: `Bearer ${token}` };
 
-        const [ordersRes, usersRes, productsRes] = await Promise.all([
-          fetch(`${API_URL}/orders/admin/all`, { headers }),
-          fetch(`${API_URL}/users`, { headers }),
-          fetch(`${API_URL}/products`, { headers }),
-        ]);
-
-        if (!ordersRes.ok || !usersRes.ok || !productsRes.ok) {
-          throw new Error("Failed to fetch all dashboard data");
-        }
-
-        const orders = await ordersRes.json();
-        const users = await usersRes.json();
-        const products = await productsRes.json();
+        const [orders, users, products] = await Promise.all([api("/orders/admin/all"), api("/users"), api("/products")]);
 
         // 1. Process Stats
-        const totalSales = orders.reduce((acc, order) => acc + parseFloat(order.total), 0);
-        const totalOrders = orders.length;
-        const totalCustomers = users.filter((u) => u.role === "customer").length;
+        const totalSales = orders?.reduce((acc, order) => acc + parseFloat(order.total), 0);
+        const totalOrders = orders?.length;
+        const totalCustomers = users?.filter((u) => u.role === "customer")?.length;
         const avgOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0;
 
         setStats([
-          { label: "Ventas Totales", value: `$${totalSales.toFixed(2)}`, icon: DollarSign, color: "emerald" },
+          { label: "Ventas Totales", value: `$${totalSales?.toFixed(2)}`, icon: DollarSign, color: "emerald" },
           { label: "Pedidos Totales", value: totalOrders, icon: ShoppingCart, color: "blue" },
           { label: "Clientes Totales", value: totalCustomers, icon: Users, color: "purple" },
-          { label: "Valor Promedio Pedido", value: `$${avgOrderValue.toFixed(2)}`, icon: TrendingUp, color: "amber" },
+          { label: "Valor Promedio Pedido", value: `$${avgOrderValue?.toFixed(2)}`, icon: TrendingUp, color: "amber" },
         ]);
 
         // 2. Process Monthly Sales
-        const monthlySales = orders.reduce((acc, order) => {
+        const monthlySales = orders?.reduce((acc, order) => {
           const d = new Date(order.createdAt);
           const month = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
           acc[month] = (acc[month] || 0) + parseFloat(order.total);
@@ -59,7 +46,7 @@ const DashboardPage = () => {
         const monthlyChartData = Object.keys(monthlySales)
           .sort()
           .map((month) => {
-            const [year, monthNum] = month.split("-");
+            const [year, monthNum] = month;
             const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
             return {
               month: `${monthNames[parseInt(monthNum) - 1]} ${year}`,
@@ -70,13 +57,13 @@ const DashboardPage = () => {
         setmonthlyData(monthlyChartData);
 
         // 3. Process Orders by Category
-        const categories = products.reduce((acc, product) => {
+        const categories = products?.reduce((acc, product) => {
           acc[product.categoryId] = product.Category.name;
           return acc;
         }, {});
         const ordersByCategory = orders
           .flatMap((o) => o.OrderItems)
-          .reduce((acc, item) => {
+          ?.reduce((acc, item) => {
             const categoryId = products.find((p) => p.id === item.productId)?.categoryId;
             if (categoryId) {
               const categoryName = categories[categoryId] || "Unknown";
@@ -88,7 +75,7 @@ const DashboardPage = () => {
         setCategoryData(categoryChartData);
 
         // 4. Process Order Status
-        const statusCounts = orders.reduce((acc, order) => {
+        const statusCounts = orders?.reduce((acc, order) => {
           acc[order.status] = (acc[order.status] || 0) + 1;
           return acc;
         }, {});
@@ -98,26 +85,22 @@ const DashboardPage = () => {
           { name: "delivered", value: statusCounts.delivered || 0, color: "#10b981" },
           { name: "cancelled", value: statusCounts.cancelled || 0, color: "#ef4444" },
         ];
-        setOrderStatusData(statusChartData.filter((s) => s.value > 0));
+        setOrderStatusData(statusChartData?.filter((s) => s.value > 0));
 
         // 5. Process Recent Orders
         setRecentOrders(orders.slice(0, 5));
       } catch (err) {
-        setError(err.message);
+        toast.error(err.message);
       } finally {
         setLoading(false);
       }
     };
 
     fetchDashboardData();
-  }, [token]);
+  }, []);
 
   if (loading) {
-    return <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center">Cargando...</div>;
-  }
-
-  if (error) {
-    return <div className="min-h-screen bg-slate-900 text-red-500 flex items-center justify-center">{error}</div>;
+    return <Loading />;
   }
 
   return (
@@ -247,7 +230,7 @@ const DashboardPage = () => {
                 <div className="flex-1">
                   <p className="text-white font-medium">Pedido #{order.id}</p>
                   <p className="text-slate-400 text-sm">
-                    {order.User.firstName} {order.User.lastName} - ${parseFloat(order.total).toFixed(2)}
+                    {order.User.firstName} {order.User.lastName} - ${parseFloat(order.total)?.toFixed(2)}
                   </p>
                 </div>
                 <span className="text-slate-500 text-sm capitalize">{order.status}</span>
