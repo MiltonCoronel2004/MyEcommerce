@@ -206,14 +206,10 @@ export const deleteUserAdmin = async (req, res) => {
   }
 };
 
-// --- Password Reset ---
-
 export const forgotPassword = async (req, res) => {
   try {
     const user = await User.findOne({ where: { email: req.body.email } });
-    if (!user) {
-      return res.status(404).json({ msg: "No hay ningún usuario con ese correo electrónico" });
-    }
+    if (!user) return res.status(404).json({ msg: "No hay ningún usuario con ese correo electrónico" });
 
     const { resetToken, resetPasswordToken, resetPasswordExpire } = getResetPasswordToken();
 
@@ -221,14 +217,15 @@ export const forgotPassword = async (req, res) => {
     user.resetPasswordExpire = resetPasswordExpire;
     await user.save();
 
-    const resetUrl = `${req.protocol}://${req.get("host")}/api/users/resetpassword/${resetToken}`;
-    const message = `Estás recibiendo este correo porque tú (u otra persona) ha solicitado restablecer la contraseña. Por favor, haz una petición PUT a: \n\n ${resetUrl}`;
+    const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
+    const message = `Estás recibiendo este correo porque tú (u otra persona) ha solicitado restablecer la contraseña de tu cuenta.\n\nPor favor, haz clic en el siguiente enlace o pégalo en tu navegador para completar el proceso:\n\n${resetUrl}\n\nSi no lo has solicitado, ignora este correo.\n`;
 
-    await sendEmail({
+    const sending = await sendEmail({
       email: user.email,
-      subject: "Token de Restablecimiento de Contraseña",
+      subject: "Restablecimiento de Contraseña",
       message,
     });
+    console.log(sending);
 
     res.status(200).json({ success: true, data: "Correo electrónico enviado" });
   } catch (error) {

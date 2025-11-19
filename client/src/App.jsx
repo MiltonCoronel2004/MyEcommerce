@@ -15,6 +15,8 @@ import ProfilePage from "./pages/ProfilePage";
 import CartPage from "./pages/CartPage";
 import ProductListPage from "./pages/Admin/ProductListPage";
 import CategoryListPage from "./pages/Admin/CategoryListPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import useAuthStore from "./store/authStore";
 import { useEffect, useState } from "react";
 import Loading from "./components/Loading";
@@ -59,6 +61,8 @@ function App() {
           <Route element={<Public />}>
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+            <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
           </Route>
         </Route>
 

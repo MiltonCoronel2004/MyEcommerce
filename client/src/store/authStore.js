@@ -89,6 +89,42 @@ const useAuthStore = create(
           get().logout();
         }
       },
+
+      forgotPassword: async (email) => {
+        try {
+          const res = await fetch(`${API_URL}/users/forgotpassword`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email }),
+          });
+          const data = await res.json();
+          if (res.ok) {
+            toast.success(data.data || "Revisa tu correo para el enlace de restablecimiento.");
+          } else {
+            toast.error(data.msg || "Error al enviar el correo de restablecimiento.");
+          }
+        } catch (error) {
+          toast.error("Error de red o respuesta inválida del servidor.");
+        }
+      },
+
+      resetPassword: async (token, password) => {
+        try {
+          const res = await fetch(`${API_URL}/users/resetpassword/${token}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password }),
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.msg || "No se pudo restablecer la contraseña.");
+          }
+          toast.success(data.msg || "Contraseña restablecida con éxito.");
+        } catch (error) {
+          toast.error(error.message);
+          throw error; // Re-throw error to be caught in the component
+        }
+      },
     }),
     {
       name: "auth-storage",

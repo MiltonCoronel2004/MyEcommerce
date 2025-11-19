@@ -4,10 +4,10 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 
 const sendEmail = async (options) => {
   const message = {
-    from: `${process.env.FROM_NAME} <${process.env.FROM_EMAIL}>`,
+    from: process.env.EMAIL_FROM,
     to: options.email,
     subject: options.subject,
-    text: options.message,
+    html: `<p>${options.message.replace(/\n/g, "<br />")}</p>`,
   };
 
   const { data, error } = await resend.emails.send(message);
