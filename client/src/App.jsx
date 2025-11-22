@@ -21,6 +21,13 @@ import useAuthStore from "./store/authStore";
 import { useEffect, useState } from "react";
 import Loading from "./components/Loading";
 
+import PaymentSuccessPage from "./pages/PaymentSuccessPage";
+import PaymentCancelPage from "./pages/PaymentCancelPage";
+
+import MyOrdersPage from "./pages/MyOrdersPage";
+
+import OrderListPage from "./pages/Admin/OrderListPage";
+
 function App() {
   const [isInitialized, setIsInitialized] = useState(false);
   const { validateToken } = useAuthStore();
@@ -70,6 +77,9 @@ function App() {
           <Route element={<Private />}>
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/cart" element={<CartPage />} />
+            <Route path="/orders" element={<MyOrdersPage />} />
+            <Route path="/order/success" element={<PaymentSuccessPage />} />
+            <Route path="/order/cancel" element={<PaymentCancelPage />} />
           </Route>
         </Route>
 
@@ -78,6 +88,7 @@ function App() {
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/admin/products" element={<ProductListPage />} />
             <Route path="/admin/categories" element={<CategoryListPage />} />
+            <Route path="/admin/orders" element={<OrderListPage />} />
           </Route>
         </Route>
       </Routes>

@@ -6,74 +6,61 @@ import { ShoppingCart, Trash2, Minus, Plus } from "lucide-react";
 import api from "../services/api";
 
 const CartPage = () => {
-  const [cart, setCart] = useState(null);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
-  const { token } = useAuthStore();
-
-  const fetchCart = useCallback(async () => {
-    setLoading(true);
-    try {
-      const data = await api("/cart");
-      setCart(data);
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const { user, cart, token, fetchCart, updateProductQuantity, removeProductFromCart } = useAuthStore();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (user?.role === 'admin') {
+      navigate('/dashboard');
+    }
+  }, [user, navigate]);
+
+  const handleFetchCart = useCallback(async () => {
     if (token) {
-      fetchCart();
+      setLoading(true);
+      await fetchCart();
+      setLoading(false);
     }
   }, [token, fetchCart]);
 
-  const handleUpdateQuantity = async (productId, quantity) => {
-    if (quantity < 1) return;
-    try {
-      await api(`/cart/update/${productId}`, {
-        method: "PUT",
-        body: JSON.stringify({ quantity }),
-      });
-      fetchCart();
-    } catch (err) {
-      toast.error(`Error al actualizar la cantidad: ${err.message}`);
+  useEffect(() => {
+    handleFetchCart();
+  }, [handleFetchCart]);
+
+  const handleQuantityInputChange = (productId, value) => {
+    const quantity = Number(value);
+    if (!isNaN(quantity)) {
+      updateProductQuantity(productId, quantity);
     }
   };
 
-  const handleQuantityChange = (productId, currentQty, delta, maxStock) => {
+  const handleQuantityChange = (productId, currentQty, delta) => {
     const newQty = currentQty + delta;
-    if (newQty >= 1 && newQty <= maxStock) {
-      handleUpdateQuantity(productId, newQty);
-    }
+    updateProductQuantity(productId, newQty);
   };
 
-  const handleRemoveProduct = async (productId) => {
-    try {
-      await api(`/cart/remove/${productId}`, {
-        method: "DELETE",
-      });
-      toast.success("Producto eliminado del carrito.");
-      fetchCart();
-    } catch (err) {
-      toast.error(`Error al eliminar el producto: ${err.message}`);
-    }
-  };
+  const checkout = async () => {
+    const requiredFields = ["email", "addressLine1", "city", "state", "postalCode", "country"];
+    const missingFields = requiredFields.filter(field => !user[field]);
 
-  const handleCheckout = async () => {
+    if (missingFields.length > 0) {
+      toast.error("Por favor, completa tu información de perfil (email y dirección) antes de proceder al pago.");
+      navigate('/profile');
+      return;
+    }
+
     try {
-      await api("/orders", {
+      const { url } = await api("/payments/create-checkout-session", {
         method: "POST",
       });
-      toast.success("¡Pedido realizado con éxito!");
-      navigate("/profile"); // Navigate to profile to see orders
+      window.location.href = url;
     } catch (err) {
       toast.error(`Error: ${err.message}`);
     }
   };
 
-  if (loading) {
+  if (loading && !cart) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-emerald-500"></div>
@@ -111,8 +98,11 @@ const CartPage = () => {
         <h2 className="text-4xl font-bold text-white mb-8 tracking-tight">Tu Carrito</h2>
 
         <div className="space-y-4 mb-8">
-          {cart.CartItems.map((item) => (
-            <div key={item.id} className="bg-slate-800 border border-slate-700 rounded-lg p-6 hover:border-slate-600 transition-colors">
+          {cart.CartItems.map((item, index) => (
+            <div
+              key={item.id + item.Product.price + index}
+              className="bg-slate-800 border border-slate-700 rounded-lg p-6 hover:border-slate-600 transition-colors"
+            >
               <div className="flex items-center justify-between gap-6">
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-white mb-2">{item.Product.name}</h3>
@@ -122,15 +112,22 @@ const CartPage = () => {
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2 bg-slate-700 rounded-lg p-1">
                     <button
-                      onClick={() => handleQuantityChange(item.productId, item.quantity, -1, item.Product.stock)}
+                      onClick={() => handleQuantityChange(item.productId, item.quantity, -1)}
                       className="p-2 hover:bg-slate-600 rounded transition-colors text-slate-300 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                       disabled={item.quantity <= 1}
                     >
                       <Minus size={16} />
                     </button>
-                    <span className="text-white font-medium min-w-[2rem] text-center">{item.quantity}</span>
+                    <input
+                      type="number"
+                      value={item.quantity}
+                      onChange={(e) => handleQuantityInputChange(item.productId, e.target.value)}
+                      className="w-16 text-center bg-slate-700 border border-slate-600 rounded-lg px-2 py-1 text-white focus:outline-none focus:border-emerald-500"
+                      min="0"
+                      max={item.Product.stock}
+                    />
                     <button
-                      onClick={() => handleQuantityChange(item.productId, item.quantity, 1, item.Product.stock)}
+                      onClick={() => handleQuantityChange(item.productId, item.quantity, 1)}
                       className="p-2 hover:bg-slate-600 rounded transition-colors text-slate-300 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
                       disabled={item.quantity >= item.Product.stock}
                     >
@@ -143,7 +140,7 @@ const CartPage = () => {
                   </div>
 
                   <button
-                    onClick={() => handleRemoveProduct(item.productId)}
+                    onClick={() => removeProductFromCart(item.productId)}
                     className="p-2 text-slate-400 hover:text-red-400 hover:bg-slate-700 rounded transition-all"
                   >
                     <Trash2 size={20} />
@@ -160,7 +157,7 @@ const CartPage = () => {
             <p className="text-3xl font-bold text-emerald-400">${total.toFixed(2)}</p>
           </div>
           <button
-            onClick={handleCheckout}
+            onClick={checkout}
             className="w-full px-6 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-semibold transition-all hover:shadow-lg hover:shadow-emerald-500/30 text-lg"
           >
             Proceder al Pago

@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { toast } from "react-toastify";
+import { getCart, addToCart, updateCartItem, removeFromCart } from "../services/api";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -9,8 +10,83 @@ const useAuthStore = create(
     (set, get) => ({
       token: null,
       user: null,
+      cart: null,
 
       setUser: (newUser) => set({ user: newUser }),
+
+      fetchCart: async () => {
+        if (!get().token) return; // No intentar buscar el carrito si no hay token
+        try {
+          const data = await getCart();
+          if (!data.error) {
+            set({ cart: data });
+          }
+        } catch (error) {
+          console.error("Error al obtener el carrito:", error);
+        }
+      },
+
+      addProductToCart: async (productId, quantity) => {
+        try {
+          const data = await addToCart(productId, quantity);
+          if (!data.error) {
+            set({ cart: data.cart });
+            toast.success(data.msg || "Producto añadido al carrito");
+          } else {
+            toast.error(data.msg || "Error al añadir el producto");
+          }
+        } catch (error) {
+          toast.error("Error de red al añadir al carrito.");
+        }
+      },
+
+      updateProductQuantity: async (productId, quantity) => {
+        const originalCart = get().cart;
+        const newQuantity = Math.max(0, quantity); // Ensure quantity is not negative
+
+        const updatedCart = {
+          ...originalCart,
+          CartItems: originalCart.CartItems.map((item) =>
+            item.productId === productId ? { ...item, quantity: newQuantity } : item
+          ).filter(item => item.quantity > 0), // Filter out items with 0 quantity
+        };
+
+        set({ cart: updatedCart }); // Optimistic update
+
+        try {
+          if (newQuantity > 0) {
+            await updateCartItem(productId, newQuantity);
+          } else {
+            await removeFromCart(productId);
+          }
+          // Optionally, you can fetch the cart again to ensure data consistency
+          // get().fetchCart(); 
+        } catch (error) {
+          set({ cart: originalCart }); // Revert on error
+          toast.error("Error al actualizar el carrito.");
+        }
+      },
+
+      removeProductFromCart: async (productId) => {
+        const originalCart = get().cart;
+
+        const updatedCart = {
+          ...originalCart,
+          CartItems: originalCart.CartItems.filter(
+            (item) => item.productId !== productId
+          ),
+        };
+
+        set({ cart: updatedCart }); // Optimistic update
+
+        try {
+          await removeFromCart(productId);
+          toast.info("Producto eliminado del carrito.");
+        } catch (error) {
+          set({ cart: originalCart }); // Revert on error
+          toast.error("Error al eliminar el producto.");
+        }
+      },
 
       login: async (email, password) => {
         try {
@@ -22,6 +98,7 @@ const useAuthStore = create(
           const data = await res.json();
           if (res.ok) {
             set({ token: data.token, user: data.user });
+            get().fetchCart(); // Cargar el carrito después del login
             toast.success("¡Bienvenido de nuevo!");
           } else {
             toast.error(data.msg || "Error en el inicio de sesión.");
@@ -58,7 +135,7 @@ const useAuthStore = create(
       },
 
       logout: () => {
-        set({ token: null, user: null });
+        set({ token: null, user: null, cart: null });
         toast.info("Has cerrado sesión.");
       },
 
@@ -80,6 +157,7 @@ const useAuthStore = create(
           const data = await res.json();
           if (res.ok) {
             set({ user: data });
+            get().fetchCart(); // Sincronizar carrito al validar token
             return true;
           } else {
             get().logout();
@@ -134,3 +212,4 @@ const useAuthStore = create(
 );
 
 export default useAuthStore;
+

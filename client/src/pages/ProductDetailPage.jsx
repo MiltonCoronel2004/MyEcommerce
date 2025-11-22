@@ -12,7 +12,7 @@ const ProductDetailPage = () => {
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
-  const { user } = useAuthStore();
+  const { user, addProductToCart } = useAuthStore();
 
   useEffect(() => {
     const fetchProductById = async () => {
@@ -20,6 +20,11 @@ const ProductDetailPage = () => {
       try {
         const data = await api(`/products/${id}`);
         setProduct(data);
+        if (data && data.stock > 0) {
+          setQuantity(1);
+        } else {
+          setQuantity(0);
+        }
       } catch (err) {
         toast.error(err.message);
       } finally {
@@ -29,21 +34,25 @@ const ProductDetailPage = () => {
     fetchProductById();
   }, [id]);
 
+  const handleQuantityChange = (e) => {
+    const value = e.target.value;
+    if (value === "") {
+      setQuantity(0);
+      return;
+    }
+    const val = Number(value);
+    if (val >= 0 && val <= product.stock) {
+      setQuantity(val);
+    }
+  };
+
   const handleAddToCart = async () => {
     if (!user) {
       toast.info("Por favor, inicia sesión para añadir artículos a tu carrito.");
       navigate("/login");
       return;
     }
-    try {
-      await api("/cart/add", {
-        method: "POST",
-        body: JSON.stringify({ productId: product.id, quantity }),
-      });
-      toast.success(`${quantity} de ${product.name} añadido(s) al carrito!`);
-    } catch (err) {
-      toast.error(`Error al añadir al carrito: ${err.message}`);
-    }
+    addProductToCart(product.id, quantity);
   };
 
   const incrementQuantity = () => {
@@ -51,7 +60,7 @@ const ProductDetailPage = () => {
   };
 
   const decrementQuantity = () => {
-    if (quantity > 1) setQuantity(quantity - 1);
+    if (quantity > 0) setQuantity(quantity - 1);
   };
 
   if (loading) {
@@ -104,7 +113,7 @@ const ProductDetailPage = () => {
                 <button
                   onClick={decrementQuantity}
                   className="p-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  disabled={quantity <= 1}
+                  disabled={quantity <= 0}
                 >
                   <Minus size={20} />
                 </button>
@@ -112,11 +121,8 @@ const ProductDetailPage = () => {
                   type="number"
                   id="quantity"
                   value={quantity}
-                  onChange={(e) => {
-                    const val = Number(e.target.value);
-                    if (val >= 1 && val <= product.stock) setQuantity(val);
-                  }}
-                  min="1"
+                  onChange={handleQuantityChange}
+                  min="0"
                   max={product.stock}
                   className="w-20 text-center bg-slate-700 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-emerald-500"
                 />
@@ -131,7 +137,7 @@ const ProductDetailPage = () => {
 
               <button
                 onClick={handleAddToCart}
-                disabled={product.stock === 0}
+                disabled={product.stock === 0 || quantity === 0}
                 className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg transition-colors disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 <ShoppingCart size={20} />

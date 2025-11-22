@@ -15,9 +15,7 @@ const ForgotPasswordPage = () => {
     setError("");
     setMessage("");
 
-    if (!email) {
-      return setError("Por favor, introduce tu correo electrónico.");
-    }
+    if (!email) return setError("Por favor, introduce tu correo electrónico.");
 
     setLoading(true);
     try {

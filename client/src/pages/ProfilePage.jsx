@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from "react";
+import { Link } from "react-router";
+import { User, Phone, MapPin, Mail, Save, ListOrdered } from "lucide-react";
 import useAuthStore from "../store/authStore";
-// import apiClient from "../services/api";
-import { User, Phone, MapPin, Mail, AlertCircle, CheckCircle, Save } from "lucide-react";
+import { useState } from "react";
+import { useEffect } from "react";
+import { toast } from "react-toastify";
 
 const ProfilePage = () => {
   const { user, token, setUser } = useAuthStore();
@@ -17,8 +19,6 @@ const ProfilePage = () => {
     postalCode: "",
     country: "",
   });
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
 
   useEffect(() => {
     if (user) {
@@ -43,21 +43,23 @@ const ProfilePage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/users/profile`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify(formData),
-      });
-      const data = await res.json();
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/users/profile`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify(formData),
+    });
+    const data = await res.json();
 
-      setUser(formData);
-      setSuccess("¡Perfil actualizado con éxito!");
-    } catch (err) {
-      console.log(err);
-      const errorMessage = err.res?.data?.message || "Ocurrió un error desconocido.";
-      setError(errorMessage);
+    if (data.error) {
+      if (Array.isArray(data.errors))
+        return data.errors.forEach((e) => {
+          toast.error(e.msg);
+        });
+      return toast.error(data.msg);
     }
+
+    setUser(formData);
+    toast.success("¡Perfil actualizado con éxito!");
   };
 
   if (!user) {
@@ -83,22 +85,18 @@ const ProfilePage = () => {
           </div>
         </div> */}
 
+        <div className="flex justify-end mb-4">
+          <Link
+            to="/orders"
+            className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-emerald-500/20 text-slate-300 hover:text-emerald-400 border border-slate-600 hover:border-emerald-500/30 rounded-lg transition-all font-medium"
+          >
+            <ListOrdered size={20} />
+            <span>Mis Pedidos</span>
+          </Link>
+        </div>
+
         <div className="bg-slate-800 border border-slate-700 rounded-lg p-8">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 flex items-start gap-3">
-                <AlertCircle className="text-red-400 flex-shrink-0 mt-0.5" size={20} />
-                <p className="text-red-400 text-sm">{error}</p>
-              </div>
-            )}
-
-            {success && (
-              <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4 flex items-start gap-3">
-                <CheckCircle className="text-emerald-400 flex-shrink-0 mt-0.5" size={20} />
-                <p className="text-emerald-400 text-sm">{success}</p>
-              </div>
-            )}
-
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label htmlFor="firstName" className="block text-sm font-medium text-slate-300 mb-2">

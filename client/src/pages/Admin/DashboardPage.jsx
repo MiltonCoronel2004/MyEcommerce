@@ -1,10 +1,25 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import useAuthStore from "../../store/authStore";
 import { toast } from "react-toastify";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Package, ShoppingCart, DollarSign, Users, TrendingUp, Activity, Clock } from "lucide-react";
+import { Package, ShoppingCart, DollarSign, Users, TrendingUp, Activity, Clock, ChevronDown, Download } from "lucide-react";
 import api from "../../services/api";
 import Loading from "../../components/Loading";
+
+const b64toBlob = (b64Data, contentType='', sliceSize=512) => {
+  const byteCharacters = atob(b64Data);
+  const byteArrays = [];
+  for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+    const slice = byteCharacters.slice(offset, offset + sliceSize);
+    const byteNumbers = new Array(slice.length);
+    for (let i = 0; i < slice.length; i++) {
+      byteNumbers[i] = slice.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+    byteArrays.push(byteArray);
+  }
+  return new Blob(byteArrays, {type: contentType});
+}
 
 const DashboardPage = () => {
   const { user } = useAuthStore();
@@ -14,7 +29,40 @@ const DashboardPage = () => {
   const [orderStatusData, setOrderStatusData] = useState([]);
   const [recentOrders, setRecentOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isExportMenuOpen, setIsExportMenuOpen] = useState(false);
+  const exportMenuRef = useRef(null);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(event.target)) {
+        setIsExportMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  const handleExport = async (format) => {
+    try {
+      toast.info("Generando reporte...");
+      const { fileData, filename } = await api(`/reports/dashboard?format=${format}`);
+      const blob = b64toBlob(fileData);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success("¡Reporte descargado!");
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+  
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
@@ -46,7 +94,7 @@ const DashboardPage = () => {
         const monthlyChartData = Object.keys(monthlySales)
           .sort()
           .map((month) => {
-            const [year, monthNum] = month;
+            const [year, monthNum] = month.split('-');
             const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
             return {
               month: `${monthNames[parseInt(monthNum) - 1]} ${year}`,
@@ -81,8 +129,9 @@ const DashboardPage = () => {
         }, {});
         const statusChartData = [
           { name: "pending", value: statusCounts.pending || 0, color: "#f59e0b" },
-          { name: "shipped", value: statusCounts.shipped || 0, color: "#3b82f6" },
-          { name: "delivered", value: statusCounts.delivered || 0, color: "#10b981" },
+          { name: "paid", value: statusCounts.paid || 0, color: "#3b82f6" },
+          { name: "shipped", value: statusCounts.shipped || 0, color: "#10b981" },
+          { name: "completed", value: statusCounts.completed || 0, color: "#84cc16" },
           { name: "cancelled", value: statusCounts.cancelled || 0, color: "#ef4444" },
         ];
         setOrderStatusData(statusChartData?.filter((s) => s.value > 0));
@@ -106,11 +155,29 @@ const DashboardPage = () => {
   return (
     <div className="min-h-screen bg-slate-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">Panel de Control</h1>
-          <p className="text-slate-400 text-lg">
-            ¡Bienvenido de nuevo, <span className="text-emerald-400 font-medium">{user?.firstName}</span>!
-          </p>
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">Panel de Control</h1>
+            <p className="text-slate-400 text-lg">
+              ¡Bienvenido de nuevo, <span className="text-emerald-400 font-medium">{user?.firstName}</span>!
+            </p>
+          </div>
+          <div className="relative" ref={exportMenuRef}>
+            <button
+              onClick={() => setIsExportMenuOpen(!isExportMenuOpen)}
+              className="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-emerald-500/20 text-slate-300 hover:text-emerald-400 border border-slate-600 hover:border-emerald-500/30 rounded-lg transition-all font-medium"
+            >
+              <Download size={20} />
+              <span>Exportar</span>
+              <ChevronDown size={20} className={`transition-transform ${isExportMenuOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {isExportMenuOpen && (
+              <div className="absolute right-0 mt-2 w-48 bg-slate-800 border border-slate-700 rounded-lg shadow-lg py-1 z-10">
+                <button onClick={() => handleExport('csv')} className="w-full text-left block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700">Exportar como CSV</button>
+                <button onClick={() => handleExport('pdf')} className="w-full text-left block px-4 py-2 text-sm text-slate-300 hover:bg-slate-700">Exportar como PDF</button>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Stats Grid */}

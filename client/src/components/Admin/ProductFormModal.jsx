@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import { X, Package, DollarSign, Hash, Image, FileText, Tag } from "lucide-react";
 import { getCategories } from "../../services/api";
 
@@ -59,7 +60,7 @@ const ProductFormModal = ({ product, onClose, onSave }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.categoryId) {
-      alert("Por favor, seleccione una categoría.");
+      toast.error("Por favor, seleccione una categoría.");
       return;
     }
     const productData = new FormData();
