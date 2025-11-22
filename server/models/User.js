@@ -60,12 +60,12 @@ User.init(
       defaultValue: true,
     },
     resetPasswordToken: {
-        type: DataTypes.STRING,
-        allowNull: true,
+      type: DataTypes.STRING,
+      allowNull: true,
     },
     resetPasswordExpire: {
-        type: DataTypes.DATE,
-        allowNull: true,
+      type: DataTypes.DATE,
+      allowNull: true,
     },
   },
   {

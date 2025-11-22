@@ -4,6 +4,10 @@ import { authMiddleware, admin } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-router.get("/orders", authMiddleware, admin, reportController.downloadOrdersReport);
+// All report routes should be admin-only
+router.use(authMiddleware, admin);
+
+router.get("/orders", reportController.exportOrders);
+router.get("/dashboard", reportController.exportDashboard);
 
 export default router;

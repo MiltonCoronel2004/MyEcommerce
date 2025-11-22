@@ -15,28 +15,32 @@ Order.init(
       allowNull: false,
     },
     status: {
-      type: DataTypes.ENUM('pending', 'completed', 'shipped', 'cancelled'),
+      type: DataTypes.ENUM('pending', 'paid', 'completed', 'shipped', 'cancelled'),
       defaultValue: 'pending',
+    },
+    stripeSessionId: {
+      type: DataTypes.STRING,
+      allowNull: true, // Allow null for orders not created via Stripe
     },
     shippingAddress: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     shippingCity: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     shippingState: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     shippingPostalCode: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     shippingCountry: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
   },
   {

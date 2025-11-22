@@ -2,7 +2,7 @@ import express from "express";
 import * as userController from "../controllers/userController.js";
 import { authMiddleware, admin } from "../middlewares/authMiddleware.js";
 
-import { registerValidator, loginValidator, passwordUpdateValidator } from "../middlewares/validators/userValidator.js";
+import { registerValidator, loginValidator, passwordUpdateValidator, profileValidator } from "../middlewares/validators/userValidator.js";
 
 import { forgotPasswordValidator, resetPasswordValidator } from "../middlewares/validators/passwordResetValidator.js";
 import { validationResultHandler } from "../middlewares/errorMiddleware.js";
@@ -21,7 +21,7 @@ userRoutes.get("/verify/:token", userController.verifyToken);
 
 userRoutes.get("/profile", authMiddleware, userController.getProfile);
 
-userRoutes.put("/profile", authMiddleware, userController.updateProfile);
+userRoutes.put("/profile", authMiddleware, profileValidator, validationResultHandler, userController.updateProfile);
 
 userRoutes.put("/profile/password", authMiddleware, passwordUpdateValidator, userController.updatePassword);
 

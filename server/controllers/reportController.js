@@ -1,76 +1,141 @@
 import { Parser } from "json2csv";
-import excel from "exceljs";
+import PDFDocument from "pdfkit";
 import Order from "../models/Order.js";
 import User from "../models/User.js";
 import OrderItem from "../models/OrderItem.js";
 import Product from "../models/Product.js";
 
-export const downloadOrdersReport = async (req, res) => {
-  try {
-    const format = req.query.format || "csv";
-    if (format !== "csv" && format !== "excel") {
-      return res.status(400).json({ error: true, msg: "Invalid format. Must be 'csv' or 'excel'." });
-    }
+// Helper to get a buffer from a stream
+const streamToBuffer = (stream) => {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    stream.on("data", (chunk) => chunks.push(chunk));
+    stream.on("end", () => resolve(Buffer.concat(chunks)));
+    stream.on("error", reject);
+  });
+};
 
+const getDashboardStats = async () => {
+  const orders = await Order.findAll();
+  const users = await User.findAll();
+  const totalSales = orders.reduce((acc, order) => acc + parseFloat(order.total), 0);
+  const totalOrders = orders.length;
+  const totalCustomers = users.filter((u) => u.role !== "admin").length;
+  return [
+    { metric: "Ventas Totales (USD)", value: totalSales.toFixed(2) },
+    { metric: "Pedidos Totales", value: totalOrders },
+    { metric: "Clientes Totales", value: totalCustomers },
+  ];
+};
+
+export const exportDashboard = async (req, res) => {
+  const { format = "csv" } = req.query;
+  const stats = await getDashboardStats();
+  const timestamp = new Date().toISOString().replace(/:/g, "-");
+  
+  try {
+    if (format === "csv") {
+      const json2csvParser = new Parser();
+      const csv = json2csvParser.parse(stats);
+      const fileData = Buffer.from(csv).toString("base64");
+      res.json({
+        filename: `dashboard-report-${timestamp}.csv`,
+        fileData,
+      });
+    } else if (format === "pdf") {
+      const doc = new PDFDocument();
+      doc.fontSize(25).text("Reporte del Dashboard", { align: "center" });
+      doc.moveDown();
+      stats.forEach(({ metric, value }) => {
+        doc.fontSize(16).text(`${metric}: ${value}`);
+        doc.moveDown(0.5);
+      });
+      doc.end();
+      const buffer = await streamToBuffer(doc);
+      const fileData = buffer.toString("base64");
+      res.json({
+        filename: `dashboard-report-${timestamp}.pdf`,
+        fileData,
+      });
+    } else {
+      res.status(400).json({ error: "Invalid format" });
+    }
+  } catch (error) {
+    res.status(500).json({ error: "Error generating report", msg: error.message });
+  }
+};
+
+export const exportOrders = async (req, res) => {
+  const { format = "csv" } = req.query;
+  const timestamp = new Date().toISOString().replace(/:/g, "-");
+
+  try {
     const orders = await Order.findAll({
       include: [
-        { model: User, attributes: ["id", "firstName", "lastName", "email"] },
-        { model: OrderItem, include: [{ model: Product, attributes: ["name", "sku"] }] },
+        { model: User, attributes: ["firstName", "email"] },
+        { model: OrderItem, include: [{ model: Product, attributes: ["name"] }] },
       ],
       order: [["createdAt", "DESC"]],
     });
 
     const reportData = orders.map((order) => ({
-      orderId: order.id,
-      customerName: `${order.User.firstName} ${order.User.lastName}`,
-      customerEmail: order.User.email,
-      total: order.total,
-      status: order.status,
-      orderDate: order.createdAt.toISOString().split("T")[0],
-      shippingAddress: `${order.shippingAddress}, ${order.shippingCity}, ${order.shippingState} ${order.shippingPostalCode}`,
-      itemCount: order.OrderItems.length,
-      items: order.OrderItems.map((item) => `${item.Product.name} (Qty: ${item.quantity})`).join(", "),
+      ID: order.id,
+      Cliente: `${order.User.firstName} (${order.User.email})`,
+      Total: order.total,
+      Estado: order.status,
+      Fecha: order.createdAt.toLocaleDateString(),
+      Items: order.OrderItems.map(item => `${item.quantity}x ${item.Product.name}`).join(", "),
     }));
-
-    const timestamp = new Date().toISOString().replace(/:/g, "-");
-    let data;
-    let contentType;
-    let fileName;
-
+    
     if (format === "csv") {
       const json2csvParser = new Parser();
-      data = json2csvParser.parse(reportData);
-      contentType = "text/csv";
-      fileName = `orders-report-${timestamp}.csv`;
+      const csv = json2csvParser.parse(reportData);
+      const fileData = Buffer.from(csv).toString("base64");
+      res.json({
+        filename: `orders-report-${timestamp}.csv`,
+        fileData,
+      });
+    } else if (format === "pdf") {
+      const doc = new PDFDocument({ layout: 'landscape' });
+      doc.fontSize(20).text("Reporte de Pedidos", { align: "center" });
+      doc.moveDown();
+      const tableTop = 100;
+      const headers = ["ID", "Cliente", "Total", "Estado", "Fecha", "Items"];
+      const columnWidths = [40, 150, 60, 70, 80, 250];
+
+      let currentX = 50;
+      doc.fontSize(10).font('Helvetica-Bold');
+      headers.forEach((header, i) => {
+        doc.text(header, currentX, tableTop);
+        currentX += columnWidths[i];
+      });
+      doc.font('Helvetica');
+
+      let currentY = tableTop + 20;
+      reportData.forEach(row => {
+        currentX = 50;
+        doc.fontSize(8);
+        headers.forEach((header, i) => {
+          doc.text(String(row[header] || ''), currentX, currentY, { width: columnWidths[i] - 5, align: 'left' });
+          currentX += columnWidths[i];
+        });
+        currentY += 40;
+        if (currentY > 500) {
+          doc.addPage({ layout: 'landscape' });
+          currentY = 50;
+        }
+      });
+      doc.end();
+      const buffer = await streamToBuffer(doc);
+      const fileData = buffer.toString("base64");
+      res.json({
+        filename: `orders-report-${timestamp}.pdf`,
+        fileData,
+      });
     } else {
-      // excel
-      const workbook = new excel.Workbook();
-      const worksheet = workbook.addWorksheet("Orders Report");
-
-      worksheet.columns = [
-        { header: "Order ID", key: "orderId", width: 10 },
-        { header: "Customer Name", key: "customerName", width: 25 },
-        { header: "Customer Email", key: "customerEmail", width: 30 },
-        { header: "Total", key: "total", width: 15 },
-        { header: "Status", key: "status", width: 15 },
-        { header: "Order Date", key: "orderDate", width: 15 },
-        { header: "Shipping Address", key: "shippingAddress", width: 50 },
-        { header: "Item Count", key: "itemCount", width: 10 },
-        { header: "Items", key: "items", width: 60 },
-      ];
-
-      worksheet.addRows(reportData);
-      worksheet.getRow(1).font = { bold: true };
-
-      data = await workbook.xlsx.writeBuffer();
-      contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
-      fileName = `orders-report-${timestamp}.xlsx`;
+      res.status(400).json({ error: "Invalid format" });
     }
-
-    res.setHeader("Content-Type", contentType);
-    res.setHeader("Content-Disposition", `attachment; filename=${fileName}`);
-    res.send(data);
   } catch (error) {
-    res.status(500).json({ error: true, msg: "Error generating report", error: error.message });
+    res.status(500).json({ error: "Error generating report", msg: error.message });
   }
 };

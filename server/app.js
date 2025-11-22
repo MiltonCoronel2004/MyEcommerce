@@ -35,6 +35,7 @@ app.use(
     origin: ["http://localhost:5173"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    exposeHeaders: ["Content-Disposition"],
     credentials: true,
     maxAge: 600,
   })
@@ -74,9 +75,11 @@ const startServer = async () => {
   try {
     await sequelize.authenticate();
     console.log("Database connection has been established successfully.");
-    // Temporarily removed sequelize.sync to prevent "Too many keys" error and table truncation.
-    // Ensure your database schema is up-to-date with the models.
-    // For production, consider using database migrations.
+    
+    // Synchronize models with the database
+    await sequelize.sync({ alter: true });
+    console.log("Database schema synchronized.");
+
     app.listen(PORT, () => {
       console.log(`Server running on port: ${PORT}`);
     });

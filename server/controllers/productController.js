@@ -37,7 +37,6 @@ export const getById = async (req, res) => {
 
 export const create = async (req, res) => {
   try {
-    console.log("hola");
     const productData = { ...req.body };
     if (req.file) productData.imageUrl = `${req.file.filename}`;
 

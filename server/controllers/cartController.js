@@ -34,18 +34,11 @@ export const get = async (req, res) => {
 export const add = async (req, res) => {
   try {
     const { productId, quantity } = req.body;
-    if (!productId || !quantity) {
-      return res.status(400).json({ error: true, msg: "El ID del producto y la cantidad son obligatorios" });
-    }
-
     const cart = await getOrCreateCart(req.authInfo.id);
     const product = await Product.findByPk(productId);
 
     if (!product) {
       return res.status(404).json({ error: true, msg: "Producto no encontrado" });
-    }
-    if (product.stock < quantity) {
-      return res.status(400).json({ error: true, msg: "No hay suficiente stock disponible" });
     }
 
     let cartItem = await CartItem.findOne({
@@ -53,9 +46,18 @@ export const add = async (req, res) => {
     });
 
     if (cartItem) {
-      cartItem.quantity += quantity;
+      // Si el item ya existe, validar stock contra la cantidad total
+      const newQuantity = cartItem.quantity + quantity;
+      if (product.stock < newQuantity) {
+        return res.status(400).json({ error: true, msg: "No hay suficiente stock disponible" });
+      }
+      cartItem.quantity = newQuantity;
       await cartItem.save();
     } else {
+      // Si es un item nuevo, validar stock contra la cantidad inicial
+      if (product.stock < quantity) {
+        return res.status(400).json({ error: true, msg: "No hay suficiente stock disponible" });
+      }
       cartItem = await CartItem.create({
         cartId: cart.id,
         productId,
@@ -63,7 +65,22 @@ export const add = async (req, res) => {
       });
     }
 
-    res.status(201).json({ error: true, msg: "Producto añadido al carrito", item: cartItem });
+    // Devolver el carrito completo y actualizado
+    const fullCart = await Cart.findByPk(cart.id, {
+      include: [
+        {
+          model: CartItem,
+          as: "CartItems",
+          include: [
+            {
+              model: Product,
+            },
+          ],
+        },
+      ],
+    });
+
+    res.status(200).json({ error: false, msg: "Producto añadido al carrito", cart: fullCart });
   } catch (error) {
     res.status(400).json({ error: true, msg: error.message });
   }

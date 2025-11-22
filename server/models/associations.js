@@ -15,6 +15,12 @@ export default function setupAssociations() {
   Cart.belongsToMany(Product, { through: CartItem, foreignKey: "cartId" });
   Product.belongsToMany(Cart, { through: CartItem, foreignKey: "productId" });
 
+  Cart.hasMany(CartItem, { foreignKey: "cartId", as: "CartItems" });
+  CartItem.belongsTo(Cart, { foreignKey: "cartId" });
+
+  CartItem.belongsTo(Product, { foreignKey: "productId" });
+  Product.hasMany(CartItem, { foreignKey: "productId" });
+
   // User-Order Association (One-to-Many)
   User.hasMany(Order, { foreignKey: "userId" });
   Order.belongsTo(User, { foreignKey: "userId" });
@@ -24,6 +30,7 @@ export default function setupAssociations() {
   Product.belongsToMany(Order, { through: OrderItem, foreignKey: "productId" });
   Order.hasMany(OrderItem, { foreignKey: "orderId" });
   OrderItem.belongsTo(Order, { foreignKey: "orderId" });
+  OrderItem.belongsTo(Product, { foreignKey: "productId" });
 
   // Category-Product Association (One-to-Many)
   Category.hasMany(Product, { foreignKey: "categoryId" });

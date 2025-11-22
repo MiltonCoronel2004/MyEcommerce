@@ -3,10 +3,10 @@ import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import { Op } from "sequelize";
 import User from "../models/User.js";
-import sendEmail from "../utils/email.js";
-import { log } from "console";
+import { Resend } from "resend";
 
 const JWT_SECRET = process.env.JWT_SECRET;
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 // Función de ayuda para generar el token de reseteo
 const getResetPasswordToken = () => {
@@ -218,15 +218,88 @@ export const forgotPassword = async (req, res) => {
     await user.save();
 
     const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
-    const message = `Estás recibiendo este correo porque tú (u otra persona) ha solicitado restablecer la contraseña de tu cuenta.\n\nPor favor, haz clic en el siguiente enlace o pégalo en tu navegador para completar el proceso:\n\n${resetUrl}\n\nSi no lo has solicitado, ignora este correo.\n`;
+    const message = `<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restablecer Contraseña</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #0f172a;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #0f172a; padding: 40px 20px;">
+        <tr>
+            <td align="center">
+                <table width="600" cellpadding="0" cellspacing="0" style="max-width: 600px; background-color: #1e293b; border: 1px solid #334155; border-radius: 8px; overflow: hidden;">
+                    <!-- Header -->
+                    <tr>
+                        <td style="padding: 40px 40px 20px 40px; text-align: center;">
+                            <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">Restablecer Contraseña</h1>
+                        </td>
+                    </tr>
 
-    const sending = await sendEmail({
-      email: user.email,
-      subject: "Restablecimiento de Contraseña",
-      message,
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 0 40px 30px 40px;">
+                            <p style="margin: 0 0 20px 0; color: #94a3b8; font-size: 16px; line-height: 1.6;">
+                                Estás recibiendo este correo porque tú (u otra persona) ha solicitado restablecer la contraseña de tu cuenta.
+                            </p>
+
+                            <p style="margin: 0 0 30px 0; color: #94a3b8; font-size: 16px; line-height: 1.6;">
+                                Por favor, haz clic en el siguiente botón para completar el proceso:
+                            </p>
+
+                            <!-- Button -->
+                            <table width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td align="center" style="padding: 0 0 30px 0;">
+                                        <a href=${resetUrl} style="display: inline-block; padding: 16px 40px; background-color: #10b981; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);">
+                                            Restablecer Contraseña
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <p style="margin: 0 0 20px 0; color: #94a3b8; font-size: 14px; line-height: 1.6;">
+                                O copia y pega este enlace en tu navegador:
+                            </p>
+
+                            <p style="margin: 0 0 30px 0; padding: 16px; background-color: #334155; border-radius: 6px; color: #10b981; font-size: 14px; word-break: break-all;">
+                                ${resetUrl}
+                            </p>
+
+                            <p style="margin: 0; color: #64748b; font-size: 14px; line-height: 1.6;">
+                                <strong>Si no has solicitado este cambio</strong>, ignora este correo y tu contraseña permanecerá sin cambios.
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 30px 40px; background-color: #0f172a; border-top: 1px solid #334155;">
+                            <p style="margin: 0; color: #64748b; font-size: 12px; line-height: 1.6; text-align: center;">
+                                Este enlace expirará en 1 hora por razones de seguridad.
+                            </p>
+                            <p style="margin: 10px 0 0 0; color: #64748b; font-size: 12px; line-height: 1.6; text-align: center;">
+                                © 2025 Tu Empresa. Todos los derechos reservados.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>`;
+
+    const { data, error } = await resend.emails.send({
+      from: "Acme <onboarding@resend.dev>",
+      to: [req.body.email],
+      subject: "Restablecer Contraseña - MyEcommerce",
+      html: message,
     });
-    console.log(sending);
 
+    if (error) return console.error(error);
+    console.log(data);
     res.status(200).json({ success: true, data: "Correo electrónico enviado" });
   } catch (error) {
     // En producción, puede que no quieras revelar si un usuario existe o no.

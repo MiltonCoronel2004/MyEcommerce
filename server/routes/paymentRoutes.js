@@ -1,9 +1,21 @@
 import express from "express";
-import { createPaymentIntent } from "../controllers/paymentController.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
+import {
+  createCheckoutSession,
+  verifyPaymentSession,
+} from "../controllers/paymentController.js";
 
-const router = express.Router();
+const paymentRoutes = express.Router();
 
-router.post("/create-payment-intent", authMiddleware, createPaymentIntent);
+paymentRoutes.post(
+  "/create-checkout-session",
+  authMiddleware,
+  createCheckoutSession
+);
+paymentRoutes.post(
+  "/verify-session",
+  authMiddleware,
+  verifyPaymentSession
+);
 
-export default router;
+export default paymentRoutes;
