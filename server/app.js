@@ -17,13 +17,7 @@ import cartRoutes from "./routes/cartRoutes.js";
 import orderRoutes from "./routes/orderRoutes.js";
 import reportRoutes from "./routes/reportRoutes.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
 import { notFound, errorHandler } from "./middlewares/errorMiddleware.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -43,22 +37,8 @@ app.use(
 
 setupAssociations();
 
-app.use("/uploads", (req, res, next) => {
-  const filePath = path.join(__dirname, "uploads", req.path);
-  const defaultImagePath = path.join(__dirname, "uploads", "computer.png");
-
-  fs.access(filePath, fs.constants.F_OK, (err) => {
-    if (err) {
-      res.sendFile(defaultImagePath, (err) => {
-        if (err) {
-          next();
-        }
-      });
-    } else {
-      res.sendFile(filePath);
-    }
-  });
-});
+// Servir archivos estáticos desde la carpeta 'uploads'
+app.use("/uploads", express.static("uploads"));
 
 app.use("/api/users", userRoutes);
 app.use("/api/products", productRoutes);

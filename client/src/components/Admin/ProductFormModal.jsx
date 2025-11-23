@@ -18,7 +18,7 @@ const ProductFormModal = ({ product, onClose, onSave }) => {
 
   useEffect(() => {
     const fetchCategories = async () => {
-      const fetchedCategories = await getCategories();
+      const { data: fetchedCategories } = await getCategories();
       if (fetchedCategories) setCategories(fetchedCategories);
     };
     fetchCategories();
@@ -35,7 +35,7 @@ const ProductFormModal = ({ product, onClose, onSave }) => {
         categoryId: product.categoryId || "",
       });
       if (product.imageUrl) {
-        setImagePreview(`http://localhost:3000/uploads/${product.imageUrl}`);
+        setImagePreview(`${import.meta.env.VITE_SERVER_URL}/uploads/${product.imageUrl}`);
       }
     }
   }, [product]);

@@ -7,7 +7,16 @@ import User from "../models/User.js";
 import { sequelize } from "../config/database.js";
 import CartItem from "../models/CartItem.js";
 
+import { Resend } from "resend";
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const createCheckoutSession = async (req, res) => {
   const { id: userId } = req.authInfo;
@@ -74,17 +83,13 @@ export const createCheckoutSession = async (req, res) => {
 
     res.json({ url: session.url });
   } catch (error) {
-    console.error("Error creating Stripe session:", error);
     res.status(500).json({ error: "Error al crear la sesión de pago." });
   }
 };
 
 export const verifyPaymentSession = async (req, res) => {
   const { session_id } = req.body;
-  console.log("1. Entrando en verifyPaymentSession con session_id:", session_id);
-
   if (!session_id) {
-    console.log("ERROR: No se proporcionó session_id.");
     return res.status(400).json({ error: "No se proporcionó el ID de la sesión." });
   }
 
@@ -92,30 +97,24 @@ export const verifyPaymentSession = async (req, res) => {
   try {
     const existingOrder = await Order.findOne({ where: { stripeSessionId: session_id } });
     if (existingOrder) {
-      console.log("INFO: El pedido ya existe:", existingOrder.id);
       return res.json({ success: true, orderId: existingOrder.id, message: "El pedido ya ha sido procesado." });
     }
   } catch(e) {
-    console.error("ERROR checking for existing order:", e);
     return res.status(500).json({ error: "Error al verificar el pedido." });
   }
 
   const transaction = await sequelize.transaction();
-  console.log("2. Transacción de base de datos iniciada.");
 
   try {
     const session = await stripe.checkout.sessions.retrieve(session_id);
-    console.log("3. Sesión de Stripe recuperada:", session.id, "Status:", session.payment_status);
 
     if (session.payment_status !== "paid") {
       await transaction.rollback();
-      console.log("ERROR: El pago no se ha completado. Estado:", session.payment_status);
       return res.status(400).json({ error: "El pago no se ha completado." });
     }
 
     const userId = session.metadata.userId;
     const cartId = session.metadata.cartId;
-    console.log("4. Metadata recuperada:", { userId, cartId });
 
     const cart = await Cart.findByPk(cartId, {
       include: [{ model: CartItem, as: "CartItems", include: [{ model: Product }] }],
@@ -123,20 +122,16 @@ export const verifyPaymentSession = async (req, res) => {
 
     if (!cart) {
       await transaction.rollback();
-      console.log("ERROR: Carrito no encontrado con ID:", cartId);
       return res.status(404).json({ error: "Carrito no encontrado." });
     }
-    console.log("5. Carrito encontrado con ID:", cart.id);
 
     // Stock validation
     for (const item of cart.CartItems) {
       if (item.Product.stock < item.quantity) {
         await transaction.rollback();
-        console.log(`ERROR: Stock insuficiente para el producto: ${item.Product.name} (ID: ${item.productId})`);
         return res.status(400).json({ error: "Stock insuficiente para uno de los productos." });
       }
     }
-    console.log("6. Validación de stock completada.");
 
     const order = await Order.create(
       {
@@ -147,7 +142,6 @@ export const verifyPaymentSession = async (req, res) => {
       },
       { transaction }
     );
-    console.log("7. Orden creada con ID:", order.id);
 
     const orderItems = cart.CartItems.map((item) => ({
       orderId: order.id,
@@ -155,11 +149,8 @@ export const verifyPaymentSession = async (req, res) => {
       quantity: item.quantity,
       price: item.Product.price,
     }));
-    console.log("8. Mapeo de OrderItems preparado:", orderItems);
-
 
     await OrderItem.bulkCreate(orderItems, { transaction });
-    console.log("9. OrderItems guardados en la base de datos.");
 
     // Stock deduction
     for (const item of cart.CartItems) {
@@ -168,18 +159,71 @@ export const verifyPaymentSession = async (req, res) => {
         { where: { id: item.productId }, transaction }
       );
     }
-    console.log("10. Stock de productos actualizado.");
 
     await CartItem.destroy({ where: { cartId: cart.id }, transaction });
-    console.log("11. Carrito limpiado.");
 
     await transaction.commit();
-    console.log("12. Transacción completada (commit). Respondiendo con éxito.");
+
+    // Enviar correo de confirmación
+    try {
+      const fullOrder = await Order.findByPk(order.id, {
+        include: [
+          {
+            model: User,
+            attributes: ["firstName", "lastName", "email"],
+          },
+          {
+            model: OrderItem,
+            as: "OrderItems",
+            include: [
+              {
+                model: Product,
+                attributes: ["name"],
+              },
+            ],
+          },
+        ],
+      });
+
+      const emailTemplatePath = path.join(__dirname, "../templates/receipt.html");
+      let html = await fs.readFile(emailTemplatePath, "utf-8");
+
+      const itemsHtml = fullOrder.OrderItems.map(
+        (item) => `
+        <tr>
+          <td>${item.Product.name}</td>
+          <td>${item.quantity}</td>
+          <td>$${Number(item.price).toFixed(2)}</td>
+          <td>$${(item.quantity * Number(item.price)).toFixed(2)}</td>
+        </tr>
+      `
+      ).join("");
+
+      html = html.replace("{{orderId}}", fullOrder.id);
+      html = html.replace("{{orderDate}}", new Date(fullOrder.createdAt).toLocaleDateString("es-ES"));
+      html = html.replace("{{customerName}}", `${fullOrder.User.firstName} ${fullOrder.User.lastName}`);
+      html = html.replace("{{customerEmail}}", fullOrder.User.email);
+      html = html.replace("{{items}}", itemsHtml);
+      html = html.replace("{{total}}", `$${Number(fullOrder.total).toFixed(2)}`);
+      
+      // TODO: Cambiar a fullOrder.User.email cuando Resend permita enviar a cualquier correo.
+      // Por ahora, se usa un correo de prueba hardcodeado.
+      await resend.emails.send({
+        from: "MyEcommerce <onboarding@resend.dev>",
+        to: "miltoncoronel2004@gmail.com",
+        subject: `Confirmación de tu pedido #${fullOrder.id}`,
+        html: html,
+      });
+
+    } catch (emailError) {
+      console.error("Error sending confirmation email:", emailError);
+      // No devolver un error al cliente, ya que el pago fue exitoso.
+      // Simplemente registrar el error.
+    }
 
     res.json({ success: true, orderId: order.id });
   } catch (error) {
     await transaction.rollback();
-    console.error("FATAL: Error en el bloque try-catch de verifyPaymentSession:", error);
     res.status(500).json({ error: "Error al procesar el pago." });
   }
 };

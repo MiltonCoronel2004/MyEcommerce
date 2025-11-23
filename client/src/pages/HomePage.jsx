@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router";
 import useAuthStore from "../store/authStore";
 import { toast } from "react-toastify";
 import { ShoppingCart } from "lucide-react";
+import { handleApiError } from "../utils/errorHandler";
 import api from "../services/api";
 
 const HomePage = () => {
@@ -14,9 +15,9 @@ const HomePage = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        setLoading(true);
-        const data = await api("/products");
-        setProducts(data);
+        const { data, ok } = await api("/products");
+        if (ok) setProducts(data);
+        else handleApiError(data);
       } catch (err) {
         toast.error(err.message);
       } finally {
@@ -59,7 +60,11 @@ const HomePage = () => {
                 <Link to={`/product/${product.id}`} className="block">
                   <div className="relative w-full h-48">
                     <img
-                      src={product.imageUrl ? `http://localhost:3000/uploads/${product.imageUrl}` : `http://localhost:3000/uploads/computer.png`}
+                      src={
+                        product.imageUrl
+                          ? `${import.meta.env.VITE_SERVER_URL}/uploads/${product.imageUrl}`
+                          : `${import.meta.env.VITE_SERVER_URL}/uploads/computer.png`
+                      }
                       alt={product.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
@@ -68,17 +73,17 @@ const HomePage = () => {
                 </Link>
                 <div className="p-5 flex flex-col flex-grow">
                   <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-2">{product.Category?.name || "Sin Categoría"}</p>
-                  <h3 className="text-xl font-bold text-white mb-3 flex-grow">{product.name}</h3>
+                  <h3 className="text-xl font-bold text-white mb-3">{product.name}</h3>
 
-                  <h4 className="text-sm font-semibold text-gray-300 mb-3 flex-grow">Disponibles: {product.stock}</h4>
+                  <h4 className="text-sm font-semibold text-gray-300 mb-3">Disponibles: {product.stock}</h4>
 
                   <div className="flex items-end justify-between mt-auto">
                     <span className="text-2xl font-bold text-emerald-500">${parseFloat(product.price).toFixed(2)}</span>
                     <button
                       onClick={(e) => handleAddToCartClick(e, product.id)}
                       className="p-2 bg-emerald-500/10 text-emerald-400 rounded-full hover:bg-emerald-500/20 hover:text-emerald-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                      title="Añadir al carrito"
-                      disabled={product.stock === 0}
+                      title={user?.role === "admin" ? "Los administradores no pueden añadir productos al carrito" : "Añadir al carrito"}
+                      disabled={product.stock === 0 || user?.role === "admin"}
                     >
                       <ShoppingCart size={20} />
                     </button>

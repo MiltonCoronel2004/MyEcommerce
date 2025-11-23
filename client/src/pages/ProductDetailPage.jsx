@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import useAuthStore from "../store/authStore";
 import { ShoppingCart, ArrowLeft, Package, Minus, Plus } from "lucide-react";
 import api from "../services/api";
+import { handleApiError } from "../utils/errorHandler";
 import Loading from "../components/Loading";
 
 const ProductDetailPage = () => {
@@ -18,12 +19,17 @@ const ProductDetailPage = () => {
     const fetchProductById = async () => {
       setLoading(true);
       try {
-        const data = await api(`/products/${id}`);
-        setProduct(data);
-        if (data && data.stock > 0) {
-          setQuantity(1);
+        const { data, ok } = await api(`/products/${id}`);
+        if (ok) {
+          setProduct(data);
+          if (data && data.stock > 0) {
+            setQuantity(1);
+          } else {
+            setQuantity(0);
+          }
         } else {
-          setQuantity(0);
+          setProduct(null); // Asegurarse de que no haya un producto en estado de error
+          handleApiError(data);
         }
       } catch (err) {
         toast.error(err.message);
@@ -82,7 +88,7 @@ const ProductDetailPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           <div className="bg-slate-800 border border-slate-700 rounded-lg p-8 flex items-center justify-center">
             <img
-              src={product.imageUrl ? `http://localhost:3000/uploads/${product.imageUrl}` : `https://i.imgur.com/1q2h3p5.png`}
+              src={product.imageUrl ? `${import.meta.env.VITE_SERVER_URL}/uploads/${product.imageUrl}` : `https://i.imgur.com/1q2h3p5.png`}
               alt={product.name}
               className="max-w-full h-auto rounded-lg"
             />
@@ -137,11 +143,12 @@ const ProductDetailPage = () => {
 
               <button
                 onClick={handleAddToCart}
-                disabled={product.stock === 0 || quantity === 0}
+                disabled={product.stock === 0 || quantity === 0 || user?.role === "admin"}
+                title={user?.role === "admin" ? "Los administradores no pueden añadir productos al carrito" : ""}
                 className="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-semibold rounded-lg transition-colors disabled:bg-slate-700 disabled:text-slate-500 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 <ShoppingCart size={20} />
-                {product.stock === 0 ? "Agotado" : "Añadir al Carrito"}
+                {user?.role === "admin" ? "No disponible para admins" : product.stock === 0 ? "Agotado" : "Añadir al Carrito"}
               </button>
             </div>
           </div>

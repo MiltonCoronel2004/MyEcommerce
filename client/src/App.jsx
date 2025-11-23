@@ -29,23 +29,32 @@ import MyOrdersPage from "./pages/MyOrdersPage";
 import OrderListPage from "./pages/Admin/OrderListPage";
 
 function App() {
+  // Estado para controlar la inicialización de la app.
   const [isInitialized, setIsInitialized] = useState(false);
   const { validateToken } = useAuthStore();
 
+  /**
+   * Efecto de inicialización.
+   * Se ejecuta una sola vez al cargar la aplicación para validar el token de sesión
+   * almacenado en el `localStorage`. Esto permite mantener al usuario "logueado"
+   * entre recargas de la página.
+   */
   useEffect(() => {
     const initialize = async () => {
       await validateToken();
-      setIsInitialized(true);
+      setIsInitialized(true); // Marca la inicialización como completada.
     };
     initialize();
   }, [validateToken]);
 
+  // Muestra un indicador de carga global mientras se valida el token.
   if (!isInitialized) {
     return <Loading />;
   }
 
   return (
     <Router>
+      {/* Contenedor para las notificaciones (toasts) que aparecen en la aplicación. */}
       <ToastContainer
         position="bottom-right"
         autoClose={5000}
@@ -58,12 +67,18 @@ function App() {
         pauseOnHover
         theme="dark"
       />
+
+      {/* Define la estructura de rutas de la aplicación. */}
       <Routes>
+        {/* --- Rutas Públicas Generales --- */}
+        {/* Usan el layout 'Public' (ej: header y footer genéricos). */}
         <Route element={<Public />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/product/:id" element={<ProductDetailPage />} />
         </Route>
 
+        {/* --- Rutas solo para Visitantes (no logueados) --- */}
+        {/* El componente 'PublicRoute' redirige a los usuarios logueados. */}
         <Route element={<PublicRoute />}>
           <Route element={<Public />}>
             <Route path="/login" element={<LoginPage />} />
@@ -73,7 +88,10 @@ function App() {
           </Route>
         </Route>
 
+        {/* --- Rutas Privadas para Usuarios Logueados --- */}
+        {/* El componente 'PrivateRoute' protege estas rutas. */}
         <Route element={<PrivateRoute />}>
+          {/* Usan el layout 'Private' (ej: header con menú de usuario, sidebar, etc.). */}
           <Route element={<Private />}>
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/cart" element={<CartPage />} />
@@ -83,6 +101,8 @@ function App() {
           </Route>
         </Route>
 
+        {/* --- Rutas Privadas solo para Administradores --- */}
+        {/* El componente 'AdminRoute' protege estas rutas. */}
         <Route element={<AdminRoute />}>
           <Route element={<Private />}>
             <Route path="/dashboard" element={<DashboardPage />} />

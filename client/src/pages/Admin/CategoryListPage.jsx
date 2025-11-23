@@ -13,7 +13,7 @@ const CategoryListPage = () => {
   const fetchCategories = useCallback(async () => {
     try {
       setLoading(true);
-      const data = await api("/categories");
+      const { data } = await api("/categories");
       setCategories(data);
     } catch (err) {
       toast.error(err.message || "Error al cargar las categorías.");

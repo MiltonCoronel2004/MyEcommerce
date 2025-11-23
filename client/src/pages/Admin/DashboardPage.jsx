@@ -4,9 +4,10 @@ import { toast } from "react-toastify";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { Package, ShoppingCart, DollarSign, Users, TrendingUp, Activity, Clock, ChevronDown, Download } from "lucide-react";
 import api from "../../services/api";
+import { handleApiError } from "../../utils/errorHandler";
 import Loading from "../../components/Loading";
 
-const b64toBlob = (b64Data, contentType='', sliceSize=512) => {
+const b64toBlob = (b64Data, contentType = "", sliceSize = 512) => {
   const byteCharacters = atob(b64Data);
   const byteArrays = [];
   for (let offset = 0; offset < byteCharacters.length; offset += sliceSize) {
@@ -18,8 +19,27 @@ const b64toBlob = (b64Data, contentType='', sliceSize=512) => {
     const byteArray = new Uint8Array(byteNumbers);
     byteArrays.push(byteArray);
   }
-  return new Blob(byteArrays, {type: contentType});
-}
+  return new Blob(byteArrays, { type: contentType });
+};
+
+const colorMap = {
+  emerald: {
+    bg: "bg-emerald-500/10",
+    text: "text-emerald-400",
+  },
+  blue: {
+    bg: "bg-blue-500/10",
+    text: "text-blue-400",
+  },
+  purple: {
+    bg: "bg-purple-500/10",
+    text: "text-purple-400",
+  },
+  amber: {
+    bg: "bg-amber-500/10",
+    text: "text-amber-400",
+  },
+};
 
 const DashboardPage = () => {
   const { user } = useAuthStore();
@@ -47,7 +67,13 @@ const DashboardPage = () => {
   const handleExport = async (format) => {
     try {
       toast.info("Generando reporte...");
-      const { fileData, filename } = await api(`/reports/dashboard?format=${format}`);
+      const { data, ok } = await api(`/reports/dashboard?format=${format}`);
+
+      if (!ok) {
+        return handleApiError(data);
+      }
+
+      const { fileData, filename } = data;
       const blob = b64toBlob(fileData);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
@@ -62,25 +88,36 @@ const DashboardPage = () => {
       toast.error(error.message);
     }
   };
-  
+
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         setLoading(true);
 
-        const [orders, users, products] = await Promise.all([api("/orders/admin/all"), api("/users"), api("/products")]);
+        const ordersRes = await api("/orders/admin/all");
+        if (!ordersRes.ok) return handleApiError(ordersRes.data);
+
+        const usersRes = await api("/users");
+        if (!usersRes.ok) return handleApiError(usersRes.data);
+
+        const productsRes = await api("/products");
+        if (!productsRes.ok) return handleApiError(productsRes.data);
+
+        const orders = ordersRes.data;
+        const users = usersRes.data;
+        const products = productsRes.data;
 
         // 1. Process Stats
-        const totalSales = orders?.reduce((acc, order) => acc + parseFloat(order.total), 0);
-        const totalOrders = orders?.length;
-        const totalCustomers = users?.filter((u) => u.role === "customer")?.length;
+        const totalSales = orders?.reduce((acc, order) => acc + parseFloat(order.total), 0) || 0;
+        const totalOrders = orders?.length || 0;
+        const totalCustomers = users?.filter((u) => u.role === "customer")?.length || 0;
         const avgOrderValue = totalOrders > 0 ? totalSales / totalOrders : 0;
 
         setStats([
-          { label: "Ventas Totales", value: `$${totalSales?.toFixed(2)}`, icon: DollarSign, color: "emerald" },
+          { label: "Ventas Totales", value: `$${totalSales.toFixed(2)}`, icon: DollarSign, color: "emerald" },
           { label: "Pedidos Totales", value: totalOrders, icon: ShoppingCart, color: "blue" },
           { label: "Clientes Totales", value: totalCustomers, icon: Users, color: "purple" },
-          { label: "Valor Promedio Pedido", value: `$${avgOrderValue?.toFixed(2)}`, icon: TrendingUp, color: "amber" },
+          { label: "Valor Promedio Pedido", value: `$${avgOrderValue.toFixed(2)}`, icon: TrendingUp, color: "amber" },
         ]);
 
         // 2. Process Monthly Sales
@@ -91,7 +128,7 @@ const DashboardPage = () => {
           return acc;
         }, {});
 
-        const monthlyChartData = Object.keys(monthlySales)
+        const monthlyChartData = Object.keys(monthlySales || {})
           .sort()
           .map((month) => {
             const [year, monthNum] = month.split('-');
@@ -101,7 +138,6 @@ const DashboardPage = () => {
               amount: monthlySales[month],
             };
           });
-
         setmonthlyData(monthlyChartData);
 
         // 3. Process Orders by Category
@@ -110,7 +146,7 @@ const DashboardPage = () => {
           return acc;
         }, {});
         const ordersByCategory = orders
-          .flatMap((o) => o.OrderItems)
+          ?.flatMap((o) => o.OrderItems)
           ?.reduce((acc, item) => {
             const categoryId = products.find((p) => p.id === item.productId)?.categoryId;
             if (categoryId) {
@@ -119,7 +155,10 @@ const DashboardPage = () => {
             }
             return acc;
           }, {});
-        const categoryChartData = Object.keys(ordersByCategory).map((category) => ({ category, orders: ordersByCategory[category] }));
+        const categoryChartData = Object.keys(ordersByCategory || {}).map((category) => ({
+          category,
+          orders: ordersByCategory[category],
+        }));
         setCategoryData(categoryChartData);
 
         // 4. Process Order Status
@@ -128,16 +167,16 @@ const DashboardPage = () => {
           return acc;
         }, {});
         const statusChartData = [
-          { name: "pending", value: statusCounts.pending || 0, color: "#f59e0b" },
-          { name: "paid", value: statusCounts.paid || 0, color: "#3b82f6" },
-          { name: "shipped", value: statusCounts.shipped || 0, color: "#10b981" },
-          { name: "completed", value: statusCounts.completed || 0, color: "#84cc16" },
-          { name: "cancelled", value: statusCounts.cancelled || 0, color: "#ef4444" },
+          { name: "pending", value: statusCounts?.pending || 0, color: "#f59e0b" },
+          { name: "paid", value: statusCounts?.paid || 0, color: "#3b82f6" },
+          { name: "shipped", value: statusCounts?.shipped || 0, color: "#10b981" },
+          { name: "completed", value: statusCounts?.completed || 0, color: "#84cc16" },
+          { name: "cancelled", value: statusCounts?.cancelled || 0, color: "#ef4444" },
         ];
         setOrderStatusData(statusChartData?.filter((s) => s.value > 0));
 
         // 5. Process Recent Orders
-        setRecentOrders(orders.slice(0, 5));
+        setRecentOrders(orders?.slice(0, 5) || []);
       } catch (err) {
         toast.error(err.message);
       } finally {
@@ -185,8 +224,8 @@ const DashboardPage = () => {
           {stats.map((stat, index) => (
             <div key={index} className="bg-slate-800 border border-slate-700 rounded-lg p-6 hover:border-emerald-500/50 transition-all">
               <div className="flex items-center justify-between mb-4">
-                <div className={`p-3 bg-${stat.color}-500/10 rounded-lg`}>
-                  <stat.icon className={`text-${stat.color}-400`} size={24} />
+                <div className={`p-3 ${colorMap[stat.color]?.bg || 'bg-gray-500/10'} rounded-lg`}>
+                  <stat.icon className={`${colorMap[stat.color]?.text || 'text-gray-400'}`} size={24} />
                 </div>
               </div>
               <h3 className="text-slate-400 text-sm mb-1">{stat.label}</h3>

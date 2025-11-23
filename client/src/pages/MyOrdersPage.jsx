@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { toast } from "react-toastify";
 import api from "../services/api";
 import { Calendar, ListOrdered } from "lucide-react";
+import { handleApiError } from "../utils/errorHandler";
 import Loading from "../components/Loading";
 
 const statusTranslations = {
@@ -19,21 +20,18 @@ const MyOrdersPage = () => {
 
   useEffect(() => {
     const fetchOrders = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
-        const data = await api("/orders");
-        if (Array.isArray(data)) {
+        const { data, ok } = await api("/orders");
+        if (ok) {
           setOrders(data);
         } else {
           setOrders([]);
-          if (data.error) {
-            toast.error(data.msg || "Error al cargar los pedidos.");
-          }
+          handleApiError(data);
         }
       } catch (error) {
         setOrders([]);
-        toast.error("Error al cargar los pedidos.");
-        console.error(error);
+        toast.error("Ocurrió un error de red al cargar los pedidos.");
       } finally {
         setLoading(false);
       }
@@ -64,7 +62,7 @@ const MyOrdersPage = () => {
         ) : (
           <div className="space-y-8">
             {orders.map((order) => (
-              <div key={order.id} className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+              <div key={order.id + "order"} className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
                 <div className="p-6 bg-slate-700/50 flex flex-wrap items-center justify-between gap-4">
                   <div>
                     <h3 className="text-xl font-bold text-white">Pedido #{order.id}</h3>
@@ -80,11 +78,15 @@ const MyOrdersPage = () => {
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-slate-400">Estado</p>
-                      <span className={`px-3 py-1 text-sm font-semibold rounded-full ${
-                        order.status === 'paid' ? 'bg-blue-500/20 text-blue-400' : 
-                        order.status === 'shipped' ? 'bg-emerald-500/20 text-emerald-400' :
-                        'bg-slate-600 text-slate-300'
-                      }`}>
+                      <span
+                        className={`px-3 py-1 text-sm font-semibold rounded-full ${
+                          order.status === "paid"
+                            ? "bg-blue-500/20 text-blue-400"
+                            : order.status === "shipped"
+                            ? "bg-emerald-500/20 text-emerald-400"
+                            : "bg-slate-600 text-slate-300"
+                        }`}
+                      >
                         {statusTranslations[order.status] || order.status}
                       </span>
                     </div>
@@ -93,13 +95,17 @@ const MyOrdersPage = () => {
 
                 <div className="p-6 space-y-4">
                   {order.OrderItems.map((item) => (
-                    <div key={item.id} className="flex items-center gap-4">
+                    <div key={item.id + "item"} className="flex items-center gap-4">
                       <img
-                        src={item.Product.imageUrl ? `${import.meta.env.VITE_SERVER_URL}/uploads/${item.Product.imageUrl}` : "https://i.imgur.com/1q2h3p5.png"}
+                        src={
+                          item.Product.imageUrl
+                            ? `${import.meta.env.VITE_SERVER_URL}/uploads/${item.Product.imageUrl}`
+                            : "https://i.imgur.com/1q2h3p5.png"
+                        }
                         alt={item.Product.name}
                         className="w-16 h-16 object-cover rounded-md border border-slate-700"
                       />
-                      <div className="flex-grow">
+                      <div className="grow">
                         <p className="font-semibold text-white">{item.Product.name}</p>
                         <p className="text-sm text-slate-400">
                           {item.quantity} x ${parseFloat(item.price).toFixed(2)}

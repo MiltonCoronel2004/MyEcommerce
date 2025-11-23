@@ -1,34 +1,38 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate, Link } from "react-router";
 import useAuthStore from "../store/authStore";
 import { Mail, Lock, AlertCircle } from "lucide-react";
+import { toast } from "react-toastify";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState(null);
   const login = useAuthStore((state) => state.login);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
-    if (!email || !password) return setError("El email y la contraseña son obligatorios");
+    if (!email || !password) {
+      // Aunque el store lo maneja, una validación rápida aquí mejora la UX.
+      return toast.error("El email y la contraseña son obligatorios");
+    }
 
     try {
-      const res = await login(email, password);
+      const { data, ok } = await login(email, password);
 
-      if (res.error) return setError(res.msg || "Error en el inicio de sesión");
-
-      if (res.user?.role === "admin") {
-        navigate("/dashboard");
-      } else {
-        navigate("/");
+      // La navegación solo ocurre si el login es exitoso.
+      // El store ya se encarga de mostrar el toast de error en caso de fallo.
+      if (ok) {
+        if (data.user?.role === "admin") {
+          navigate("/dashboard");
+        } else {
+          navigate("/");
+        }
       }
     } catch (err) {
-      const errorMessage = err.res?.data?.message || "An unexpected error occurred.";
-      setError(errorMessage);
-      console.error("Login failed:", errorMessage);
+      // Este catch es para errores inesperados de red, no para errores de la API (4xx, 5xx)
+      // que son manejados en el store.
+      toast.error("Ocurrió un error de red inesperado.");
     }
   };
 
@@ -39,13 +43,6 @@ const LoginPage = () => {
           <h2 className="text-3xl font-bold text-white mb-8 text-center">Ingresar</h2>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4 flex items-start gap-3">
-                <AlertCircle className="text-red-400 flex-shrink-0 mt-0.5" size={20} />
-                <p className="text-red-400 text-sm">{error}</p>
-              </div>
-            )}
-
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
                 Correo electrónico

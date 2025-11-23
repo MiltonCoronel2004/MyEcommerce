@@ -51,10 +51,15 @@ const CartPage = () => {
     }
 
     try {
-      const { url } = await api("/payments/create-checkout-session", {
+      const response = await api("/payments/create-checkout-session", {
         method: "POST",
       });
-      window.location.href = url;
+
+      if (response.ok && response.data.url) {
+        window.location.href = response.data.url;
+      } else {
+        toast.error(response.data.error || "Error al crear la sesión de pago.");
+      }
     } catch (err) {
       toast.error(`Error: ${err.message}`);
     }
@@ -98,9 +103,9 @@ const CartPage = () => {
         <h2 className="text-4xl font-bold text-white mb-8 tracking-tight">Tu Carrito</h2>
 
         <div className="space-y-4 mb-8">
-          {cart.CartItems.map((item, index) => (
+          {cart.CartItems.map((item) => (
             <div
-              key={item.id + item.Product.price + index}
+              key={item.id}
               className="bg-slate-800 border border-slate-700 rounded-lg p-6 hover:border-slate-600 transition-colors"
             >
               <div className="flex items-center justify-between gap-6">

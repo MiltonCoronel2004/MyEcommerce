@@ -2,7 +2,15 @@ import Cart from "../models/Cart.js";
 import CartItem from "../models/CartItem.js";
 import Product from "../models/Product.js";
 
+/**
+ * Busca el carrito de un usuario. Si no existe, lo crea.
+ * Esta función asegura que cada usuario tenga siempre un carrito asociado.
+ * @param {string} userId - El ID del usuario.
+ * @returns {Promise<Cart>} El carrito del usuario.
+ */
 const getOrCreateCart = async (userId) => {
+  // findOrCreate es un método de Sequelize que intenta encontrar un registro
+  // que coincida con la cláusula 'where'. Si no lo encuentra, crea uno nuevo.
   const [cart] = await Cart.findOrCreate({
     where: { userId },
   });
@@ -32,6 +40,10 @@ export const get = async (req, res) => {
 };
 
 export const add = async (req, res) => {
+  if (req.authInfo.role === 'admin') {
+    return res.status(403).json({ error: true, msg: "Los administradores no pueden añadir productos al carrito." });
+  }
+
   try {
     const { productId, quantity } = req.body;
     const cart = await getOrCreateCart(req.authInfo.id);
@@ -41,20 +53,23 @@ export const add = async (req, res) => {
       return res.status(404).json({ error: true, msg: "Producto no encontrado" });
     }
 
+    // Busca si el producto ya existe en el carrito.
     let cartItem = await CartItem.findOne({
       where: { cartId: cart.id, productId },
     });
 
     if (cartItem) {
-      // Si el item ya existe, validar stock contra la cantidad total
+      // Si el producto ya está en el carrito, se actualiza la cantidad.
       const newQuantity = cartItem.quantity + quantity;
+      // Se comprueba que la nueva cantidad total no supere el stock disponible.
       if (product.stock < newQuantity) {
         return res.status(400).json({ error: true, msg: "No hay suficiente stock disponible" });
       }
       cartItem.quantity = newQuantity;
       await cartItem.save();
     } else {
-      // Si es un item nuevo, validar stock contra la cantidad inicial
+      // Si es un producto nuevo en el carrito, se crea el item.
+      // Se comprueba que la cantidad inicial no supere el stock disponible.
       if (product.stock < quantity) {
         return res.status(400).json({ error: true, msg: "No hay suficiente stock disponible" });
       }
@@ -65,7 +80,7 @@ export const add = async (req, res) => {
       });
     }
 
-    // Devolver el carrito completo y actualizado
+    // Devuelve el carrito completo y actualizado para refrescar la UI del cliente.
     const fullCart = await Cart.findByPk(cart.id, {
       include: [
         {

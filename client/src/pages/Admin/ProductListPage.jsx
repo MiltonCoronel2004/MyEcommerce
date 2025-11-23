@@ -4,6 +4,8 @@ import { Plus, Edit, Trash2, Package } from "lucide-react";
 import { toast } from "react-toastify";
 import api from "../../services/api";
 
+import { handleApiError } from "../../utils/errorHandler";
+
 const ProductListPage = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -13,8 +15,12 @@ const ProductListPage = () => {
   const fetchProducts = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await api("/products");
-      setProducts(data);
+      const { data, ok } = await api("/products");
+      if (ok) {
+        setProducts(data);
+      } else {
+        handleApiError(data);
+      }
     } catch (err) {
       toast.error(err.message);
     } finally {
@@ -41,18 +47,13 @@ const ProductListPage = () => {
       const url = editingProduct ? `/products/${editingProduct.id}` : "/products";
       const method = editingProduct ? "PUT" : "POST";
 
-      const data = await api(url, {
+      const { data, ok } = await api(url, {
         method,
         body: productData,
       });
-      console.log(data);
-      if (data.error || data.errors) {
-        if (Array.isArray(data.errors) && data.errors.length > 0)
-          data.errors.forEach((e) => toast.error(typeof e === "string" ? e : e.msg || JSON.stringify(e)));
-        else if (data.msg) toast.error(data.msg);
-        else if (data.message) toast.error(data.msg);
-        else toast.error("Ocurrió un error desconocido");
 
+      if (!ok) {
+        handleApiError(data);
         return;
       }
 
@@ -65,11 +66,17 @@ const ProductListPage = () => {
   };
 
   const handleDelete = async (id) => {
+    // Se deja el confirm en inglés como solicitó el usuario anteriormente.
     if (window.confirm("Are you sure you want to delete this product?")) {
       try {
-        await api(`/products/${id}`, {
+        const { data, ok } = await api(`/products/${id}`, {
           method: "DELETE",
         });
+
+        if (!ok) {
+          handleApiError(data);
+          return;
+        }
 
         toast.success("Producto eliminado con éxito!");
         fetchProducts();

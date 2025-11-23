@@ -8,13 +8,36 @@ import { validationResultHandler } from "../middlewares/errorMiddleware.js";
 
 const router = express.Router();
 
+router.get(
+  "/download/inventory",
+  authMiddleware,
+  admin,
+  productController.exportInventory
+);
+
 router.get("/", productController.getAll);
 
 router.get("/:id", productController.getById);
 
-router.post("/", authMiddleware, admin, upload, createProductValidator, validationResultHandler, productController.create);
+router.post(
+  "/",
+  authMiddleware,
+  admin,
+  upload,
+  createProductValidator,
+  validationResultHandler,
+  productController.create
+);
 
-router.put("/:id", authMiddleware, admin, upload, updateProductValidator, validationResultHandler, productController.update);
+router.put(
+  "/:id",
+  authMiddleware,
+  admin,
+  upload,
+  updateProductValidator,
+  validationResultHandler,
+  productController.update
+);
 
 router.delete("/:id", authMiddleware, admin, productController.remove);
 
