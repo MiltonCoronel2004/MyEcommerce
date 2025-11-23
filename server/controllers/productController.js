@@ -16,7 +16,7 @@ export const getAll = async (req, res) => {
     const products = await Product.findAll(options);
     res.json(products);
   } catch (error) {
-    res.status(500).json({ error: true, msg: "Error al recuperar los productos" });
+    res.status(500).json({ error: true, msg: "Error al recuperar los productos", details: error.message });
   }
 };
 

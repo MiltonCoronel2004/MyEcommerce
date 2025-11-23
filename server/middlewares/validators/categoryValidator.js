@@ -1,4 +1,4 @@
-import { body, validationResult } from "express-validator";
+import { body } from "express-validator";
 import Category from "../../models/Category.js";
 
 export const categoryValidator = [

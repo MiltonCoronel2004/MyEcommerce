@@ -1,0 +1,8 @@
+Sí, el proyecto cuenta con las siguientes funcionalidades:
+
+1.  **Carrito de Compras:** Sí, tiene un sistema de carrito de compras implementado con modelos de `Cart` y `CartItem`, y rutas dedicadas (`/api/cart`).
+2.  **Pasarela de Pago:** Sí, integra una pasarela de pago (Stripe) mediante rutas como `/api/payment/create-checkout-session` y `/api/payment/verify-session`.
+3.  **Carga de Imágenes con Express:** Sí, se utiliza `multer` para la carga de imágenes, como se ve en las rutas de productos (`/api/products` para `POST` y `PUT`).
+4.  **Servir Imágenes con Express:** Sí, Express sirve las imágenes estáticas subidas a través de la ruta `/uploads`.
+5.  **Generar Ticket/Recibo:** Sí, el backend tiene la capacidad de generar reportes detallados de órdenes en formato PDF (que pueden funcionar como tickets o recibos de compra) utilizando la ruta `/api/reports/orders`.
+6.  **Enviar Ticket por Email:** **Parcialmente**. El proyecto *tiene la capacidad* de enviar emails (demostrado con `resend` para la recuperación de contraseña), pero la lógica específica para enviar un ticket de compra por email después de una orden no está implementada directamente en el `orderController.js` actual. Sería una funcionalidad que se podría añadir utilizando la infraestructura existente.

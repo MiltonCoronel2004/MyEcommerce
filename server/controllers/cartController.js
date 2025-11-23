@@ -27,7 +27,7 @@ export const get = async (req, res) => {
     });
     res.json(fullCart);
   } catch (error) {
-    res.status(500).json({ error: true, msg: "Error al recuperar el carrito", error: error.message });
+    res.status(500).json({ error: true, msg: "Error al recuperar el carrito", details: error.message });
   }
 };
 
@@ -145,6 +145,6 @@ export const clear = async (req, res) => {
     await CartItem.destroy({ where: { cartId: cart.id } });
     res.json({ error: false, messsage: "Carrito vaciado con éxito" });
   } catch (error) {
-    res.status(500).json({ error: true, msg: "Error al vaciar el carrito", error: error.message });
+    res.status(500).json({ error: true, msg: "Error al vaciar el carrito", details: error.message });
   }
 };

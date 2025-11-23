@@ -1,4 +1,4 @@
-import { body, validationResult } from "express-validator";
+import { body } from "express-validator";
 
 export const createProductValidator = [
   body("name").notEmpty().withMessage("El nombre del producto es obligatorio."),

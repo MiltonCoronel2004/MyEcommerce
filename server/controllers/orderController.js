@@ -86,7 +86,7 @@ export const getForUser = async (req, res) => {
     });
     res.json(orders);
   } catch (error) {
-    res.status(500).json({ error: true, msg: "Error al recuperar los pedidos" });
+    res.status(500).json({ error: true, msg: "Error al recuperar los pedidos", details: error.message });
   }
 };
 
@@ -118,7 +118,7 @@ export const getAllAdmin = async (req, res) => {
     });
     res.json(orders);
   } catch (error) {
-    res.status(500).json({ error: true, msg: "Error al recuperar todos los pedidos" });
+    res.status(500).json({ error: true, msg: "Error al recuperar todos los pedidos", details: error.message });
   }
 };
 

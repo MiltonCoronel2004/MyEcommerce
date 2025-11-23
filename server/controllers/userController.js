@@ -80,7 +80,7 @@ export const getAll = async (req, res) => {
     });
     res.json(users);
   } catch (error) {
-    res.status(500).json({ msg: "Error al recuperar usuarios" });
+    res.status(500).json({ msg: "Error al recuperar usuarios", details: error.message });
   }
 };
 
@@ -105,7 +105,7 @@ export const verifyToken = async (req, res) => {
     jwt.verify(token, JWT_SECRET);
     res.json({ error: false, msg: "Token Válido" });
   } catch (error) {
-    res.status(401).json({ error: true, msg: "Token inválido.", error: error.message });
+    res.status(401).json({ error: true, msg: "Token inválido.", details: error.message });
   }
 };
 

@@ -7,7 +7,7 @@ export const getAllCategories = async (req, res) => {
     const categories = await Category.findAll();
     res.json(categories);
   } catch (error) {
-    res.status(500).json({ msg: "Error al recuperar las categorías" });
+    res.status(500).json({ msg: "Error al recuperar las categorías", details: error.message });
   }
 };
 
