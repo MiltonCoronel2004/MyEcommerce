@@ -100,7 +100,7 @@ const MyOrdersPage = () => {
                         src={
                           item.Product.imageUrl
                             ? `${import.meta.env.VITE_SERVER_URL}/uploads/${item.Product.imageUrl}`
-                            : "https://i.imgur.com/1q2h3p5.png"
+                            : `${import.meta.env.VITE_SERVER_URL}/uploads/computer.png`
                         }
                         alt={item.Product.name}
                         className="w-16 h-16 object-cover rounded-md border border-slate-700"

@@ -87,6 +87,7 @@ export const exportOrders = async (req, res) => {
         { model: User, attributes: ["firstName", "email"] },
         {
           model: OrderItem,
+          as: "OrderItems",
           include: [
             {
               model: Product,

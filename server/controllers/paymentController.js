@@ -24,8 +24,8 @@ export const createCheckoutSession = async (req, res) => {
   const { CLIENT_URL, SERVER_URL } = process.env;
   if (!CLIENT_URL || !SERVER_URL) {
     return res.status(500).json({
-      error:
-        "Las variables de entorno CLIENT_URL y SERVER_URL son necesarias.",
+      error: true,
+      msg: "Las variables de entorno CLIENT_URL y SERVER_URL son necesarias.",
     });
   }
 
@@ -46,9 +46,7 @@ export const createCheckoutSession = async (req, res) => {
     }
 
     const line_items = cart.CartItems.map((item) => {
-      const imageUrl = item.Product.imageUrl
-        ? `${SERVER_URL}/uploads/${item.Product.imageUrl}`
-        : "https://i.imgur.com/1q2h3p5.png";
+      const imageUrl = item.Product.imageUrl ? `${SERVER_URL}/uploads/${item.Product.imageUrl}` : `${SERVER_URL}/uploads/computer.png`;
 
       return {
         price_data: {
@@ -99,7 +97,7 @@ export const verifyPaymentSession = async (req, res) => {
     if (existingOrder) {
       return res.json({ success: true, orderId: existingOrder.id, message: "El pedido ya ha sido procesado." });
     }
-  } catch(e) {
+  } catch (e) {
     return res.status(500).json({ error: "Error al verificar el pedido." });
   }
 
@@ -154,10 +152,7 @@ export const verifyPaymentSession = async (req, res) => {
 
     // Stock deduction
     for (const item of cart.CartItems) {
-      await Product.update(
-        { stock: item.Product.stock - item.quantity },
-        { where: { id: item.productId }, transaction }
-      );
+      await Product.update({ stock: item.Product.stock - item.quantity }, { where: { id: item.productId }, transaction });
     }
 
     await CartItem.destroy({ where: { cartId: cart.id }, transaction });
@@ -205,7 +200,7 @@ export const verifyPaymentSession = async (req, res) => {
       html = html.replace("{{customerEmail}}", fullOrder.User.email);
       html = html.replace("{{items}}", itemsHtml);
       html = html.replace("{{total}}", `$${Number(fullOrder.total).toFixed(2)}`);
-      
+
       // TODO: Cambiar a fullOrder.User.email cuando Resend permita enviar a cualquier correo.
       // Por ahora, se usa un correo de prueba hardcodeado.
       await resend.emails.send({
@@ -214,7 +209,6 @@ export const verifyPaymentSession = async (req, res) => {
         subject: `Confirmación de tu pedido #${fullOrder.id}`,
         html: html,
       });
-
     } catch (emailError) {
       console.error("Error sending confirmation email:", emailError);
       // No devolver un error al cliente, ya que el pago fue exitoso.

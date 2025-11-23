@@ -13,8 +13,10 @@ const LoginPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password) {
-      // Aunque el store lo maneja, una validación rápida aquí mejora la UX.
       return toast.error("El email y la contraseña son obligatorios");
+    }
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      return toast.error("Por favor, introduce un correo electrónico válido.");
     }
 
     try {

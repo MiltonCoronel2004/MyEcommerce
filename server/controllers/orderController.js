@@ -26,24 +26,29 @@ export const create = async (req, res) => {
 
     const cart = await Cart.findOne({
       where: { userId },
-      include: [Product],
+      include: [
+        {
+          model: CartItem,
+          as: "CartItems",
+          include: [Product],
+        },
+      ],
       transaction: t,
     });
 
-    if (!cart || !cart.Products || cart.Products.length === 0) {
+    if (!cart || !cart.CartItems || cart.CartItems.length === 0) {
       await t.rollback();
       return res.status(400).json({ error: true, msg: "El carrito está vacío" });
     }
 
     // Verifica el stock de cada producto en el carrito antes de continuar.
     let total = 0;
-    for (const product of cart.Products) {
-      const quantity = product.CartItem.quantity;
-      if (product.stock < quantity) {
+    for (const item of cart.CartItems) {
+      if (item.Product.stock < item.quantity) {
         await t.rollback();
-        return res.status(400).json({ error: true, msg: `No hay suficiente stock para el producto: ${product.name}` });
+        return res.status(400).json({ error: true, msg: `No hay suficiente stock para el producto: ${item.Product.name}` });
       }
-      total += quantity * product.price;
+      total += item.quantity * item.Product.price;
     }
 
     // Crea el registro del pedido, denormalizando la dirección del usuario para registros históricos.
@@ -62,13 +67,13 @@ export const create = async (req, res) => {
     );
 
     // Crea los items del pedido y actualiza el stock de cada producto.
-    for (const product of cart.Products) {
+    for (const item of cart.CartItems) {
       await OrderItem.create(
         {
           orderId: order.id,
-          productId: product.id,
-          quantity: product.CartItem.quantity,
-          price: product.price,
+          productId: item.Product.id,
+          quantity: item.quantity,
+          price: item.Product.price,
         },
         { transaction: t }
       );
@@ -76,8 +81,8 @@ export const create = async (req, res) => {
       // Bloquea la fila del producto para evitar condiciones de carrera (race conditions).
       // Esto asegura que si dos pedidos intentan comprar el mismo último artículo en stock,
       // solo uno tendrá éxito y el otro fallará de forma segura.
-      const productToUpdate = await Product.findByPk(product.id, { transaction: t, lock: true });
-      productToUpdate.stock -= product.CartItem.quantity;
+      const productToUpdate = await Product.findByPk(item.Product.id, { transaction: t, lock: true });
+      productToUpdate.stock -= item.quantity;
       await productToUpdate.save({ transaction: t });
     }
 
@@ -98,7 +103,7 @@ export const getForUser = async (req, res) => {
   try {
     const orders = await Order.findAll({
       where: { userId: req.authInfo.id },
-      include: [{ model: OrderItem, include: [Product] }],
+      include: [{ model: OrderItem, as: "OrderItems", include: [Product] }],
       order: [["createdAt", "DESC"]],
     });
     res.json(orders);
@@ -111,7 +116,7 @@ export const getByIdForUser = async (req, res) => {
   try {
     const order = await Order.findOne({
       where: { id: req.params.id, userId: req.authInfo.id },
-      include: [{ model: OrderItem, include: [Product] }],
+      include: [{ model: OrderItem, as: "OrderItems", include: [Product] }],
     });
     if (!order) {
       return res.status(404).json({ error: true, msg: "Pedido no encontrado" });
@@ -129,7 +134,7 @@ export const getAllAdmin = async (req, res) => {
     const orders = await Order.findAll({
       include: [
         { model: User, attributes: ["id", "firstName", "email"] },
-        { model: OrderItem, include: [Product] },
+        { model: OrderItem, as: "OrderItems", include: [Product] },
       ],
       order: [["createdAt", "DESC"]],
     });

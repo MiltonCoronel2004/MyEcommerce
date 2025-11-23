@@ -88,7 +88,11 @@ const ProductDetailPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           <div className="bg-slate-800 border border-slate-700 rounded-lg p-8 flex items-center justify-center">
             <img
-              src={product.imageUrl ? `${import.meta.env.VITE_SERVER_URL}/uploads/${product.imageUrl}` : `https://i.imgur.com/1q2h3p5.png`}
+              src={
+                product.imageUrl
+                  ? `${import.meta.env.VITE_SERVER_URL}/uploads/${product.imageUrl}`
+                  : `${import.meta.env.VITE_SERVER_URL}/uploads/computer.png`
+              }
               alt={product.name}
               className="max-w-full h-auto rounded-lg"
             />

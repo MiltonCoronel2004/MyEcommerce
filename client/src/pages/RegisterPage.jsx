@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import useAuthStore from "../store/authStore";
 import { User, Mail, Lock, AlertCircle, CheckCircle } from "lucide-react";
+import { toast } from "react-toastify";
 
 const RegisterPage = () => {
   const [formData, setFormData] = useState({
@@ -20,8 +21,24 @@ const RegisterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    const { firstName, lastName, email, password, repassword } = formData;
+
+    if (!firstName || !lastName || !email || !password || !repassword) {
+      return toast.error("Todos los campos son obligatorios.");
+    }
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      return toast.error("Por favor, introduce un correo electrónico válido.");
+    }
+    if (password.length < 6) {
+      return toast.error("La contraseña debe tener al menos 6 caracteres.");
+    }
+    if (password !== repassword) {
+      return toast.error("Las contraseñas no coinciden.");
+    }
+
     const res = await register(formData);
-    if (res && !res.error && !res.errors) {
+    if (res && res.ok) {
       navigate("/login");
     }
   };

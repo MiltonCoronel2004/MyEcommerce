@@ -146,89 +146,90 @@ const OrderListPage = () => {
             <p className="text-slate-400 text-lg">No hay pedidos para mostrar.</p>
           </div>
         ) : (
-                    <div className="space-y-8">
-                      {orders.map((order) => (
-                        <div key={order.id} className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
-                          <div className="p-6 bg-slate-700/50 flex flex-wrap items-center justify-between gap-4">
-                            <div>
-                              <h3 className="text-xl font-bold text-white">Pedido #{order.id}</h3>
-                              <p className="text-sm text-slate-400">
-                                Usuario: {order.User.firstName} ({order.User.email})
-                              </p>
-                              <p className="text-sm text-slate-400 flex items-center gap-2 mt-1">
-                                <Calendar size={16} />
-                                {new Date(order.createdAt).toLocaleDateString()}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-6">
-                              <div className="text-right">
-                                <p className="text-sm text-slate-400">Total</p>
-                                <p className="text-lg font-bold text-emerald-400">${parseFloat(order.total).toFixed(2)}</p>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-sm text-slate-400">Estado</p>
-                                <span
-                                  className={`px-3 py-1 text-sm font-semibold rounded-full ${
-                                    order.status === "paid"
-                                      ? "bg-blue-500/20 text-blue-400"
-                                      : order.status === "shipped"
-                                      ? "bg-emerald-500/20 text-emerald-400"
-                                      : "bg-slate-600 text-slate-300"
-                                  }`}
-                                >
-                                  {statusTranslations[order.status] || order.status}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-          
-                          <div className="p-6 space-y-4">
-                            {order.OrderItems.map((item) => (
-                              <div key={item.id} className="flex items-center gap-4">
-                                <img
-                                  src={
-                                    item.Product.imageUrl
-                                      ? `${import.meta.env.VITE_SERVER_URL}/uploads/${item.Product.imageUrl}`
-                                      : "https://i.imgur.com/1q2h3p5.png"
-                                  }
-                                  alt={item.Product.name}
-                                  className="w-16 h-16 object-cover rounded-md border border-slate-700"
-                                />
-                                <div className="flex-grow">
-                                  <p className="font-semibold text-white">{item.Product.name}</p>
-                                  <p className="text-sm text-slate-400">
-                                    {item.quantity} x ${parseFloat(item.price).toFixed(2)}
-                                  </p>
-                                </div>
-                                <p className="font-semibold text-white">${(item.quantity * item.price).toFixed(2)}</p>
-                              </div>
-                            ))}
-                          </div>
-          
-                          <div className="p-4 bg-slate-800 border-t border-slate-700 flex items-center justify-end gap-3">
-                            {order.status === "paid" && (
-                              <button
-                                onClick={() => handleUpdateStatus(order.id, "shipped")}
-                                className="flex items-center gap-2 px-3 py-2 text-sm bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-all"
-                                disabled={order.status === "shipped"}
-                              >
-                                <Truck size={16} />
-                                Marcar como Enviado
-                              </button>
-                            )}
-                            {order.status !== "cancelled" && order.status !== "shipped" && (
-                              <button
-                                onClick={() => handleUpdateStatus(order.id, "cancelled")}
-                                className="flex items-center gap-2 px-3 py-2 text-sm bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg transition-all"
-                              >
-                                <XCircle size={16} />
-                                Cancelar Pedido
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>        )}
+          <div className="space-y-8">
+            {orders.map((order) => (
+              <div key={order.id} className="bg-slate-800 border border-slate-700 rounded-lg overflow-hidden">
+                <div className="p-6 bg-slate-700/50 flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <h3 className="text-xl font-bold text-white">Pedido #{order.id}</h3>
+                    <p className="text-sm text-slate-400">
+                      Usuario: {order.User.firstName} ({order.User.email})
+                    </p>
+                    <p className="text-sm text-slate-400 flex items-center gap-2 mt-1">
+                      <Calendar size={16} />
+                      {new Date(order.createdAt).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-6">
+                    <div className="text-right">
+                      <p className="text-sm text-slate-400">Total</p>
+                      <p className="text-lg font-bold text-emerald-400">${parseFloat(order.total).toFixed(2)}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-slate-400">Estado</p>
+                      <span
+                        className={`px-3 py-1 text-sm font-semibold rounded-full ${
+                          order.status === "paid"
+                            ? "bg-blue-500/20 text-blue-400"
+                            : order.status === "shipped"
+                            ? "bg-emerald-500/20 text-emerald-400"
+                            : "bg-slate-600 text-slate-300"
+                        }`}
+                      >
+                        {statusTranslations[order.status] || order.status}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-6 space-y-4">
+                  {order.OrderItems.map((item) => (
+                    <div key={item.id} className="flex items-center gap-4">
+                      <img
+                        src={
+                          item.Product.imageUrl
+                            ? `${import.meta.env.VITE_SERVER_URL}/uploads/${item.Product.imageUrl}`
+                            : `${import.meta.env.VITE_SERVER_URL}/uploads/computer.png`
+                        }
+                        alt={item.Product.name}
+                        className="w-16 h-16 object-cover rounded-md border border-slate-700"
+                      />
+                      <div className="grow">
+                        <p className="font-semibold text-white">{item.Product.name}</p>
+                        <p className="text-sm text-slate-400">
+                          {item.quantity} x ${parseFloat(item.price).toFixed(2)}
+                        </p>
+                      </div>
+                      <p className="font-semibold text-white">${(item.quantity * item.price).toFixed(2)}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="p-4 bg-slate-800 border-t border-slate-700 flex items-center justify-end gap-3">
+                  {order.status === "paid" && (
+                    <button
+                      onClick={() => handleUpdateStatus(order.id, "shipped")}
+                      className="flex items-center gap-2 px-3 py-2 text-sm bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-all"
+                      disabled={order.status === "shipped"}
+                    >
+                      <Truck size={16} />
+                      Marcar como Enviado
+                    </button>
+                  )}
+                  {order.status !== "cancelled" && order.status !== "shipped" && (
+                    <button
+                      onClick={() => handleUpdateStatus(order.id, "cancelled")}
+                      className="flex items-center gap-2 px-3 py-2 text-sm bg-red-500/10 text-red-400 hover:bg-red-500/20 rounded-lg transition-all"
+                    >
+                      <XCircle size={16} />
+                      Cancelar Pedido
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -71,7 +71,7 @@ const HomePage = () => {
                     <div className="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-all"></div>
                   </div>
                 </Link>
-                <div className="p-5 flex flex-col flex-grow">
+                <div className="p-5 flex flex-col grow">
                   <p className="text-xs font-semibold text-emerald-400 uppercase tracking-wider mb-2">{product.Category?.name || "Sin Categoría"}</p>
                   <h3 className="text-xl font-bold text-white mb-3">{product.name}</h3>
 
