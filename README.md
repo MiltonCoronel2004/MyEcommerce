@@ -34,7 +34,7 @@ Esta es una aplicación full-stack de comercio electrónico que incluye un front
 ##  Tecnologías Utilizadas
 
 - **Frontend**: React, React Router, Zustand, TailwindCSS, Vite.
-- **Backend**: Node.js, Express, Sequelize, PostgreSQL (o cualquier SQL compatible), JWT, Multer (para subida de archivos), Stripe (para pagos).
+- **Backend**: Node.js, Express, Sequelize, MySQL, JWT, Multer (para subida de archivos), Stripe (para pagos).
 
 ---
 
