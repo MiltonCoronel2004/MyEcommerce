@@ -1,4 +1,4 @@
-# Documentación del Proyecto E-commerce
+# Documentación de MyEcommerce
 
 Este documento proporciona una descripción detallada de la arquitectura, rutas y endpoints de la aplicación E-commerce, tanto para el Frontend como para el Backend.
 
@@ -34,7 +34,7 @@ Esta es una aplicación full-stack de comercio electrónico que incluye un front
 ##  Tecnologías Utilizadas
 
 - **Frontend**: React, React Router, Zustand, TailwindCSS, Vite.
-- **Backend**: Node.js, Express, Sequelize, PostgreSQL (o cualquier SQL compatible), JWT, Multer (para subida de archivos), Stripe (para pagos).
+- **Backend**: Node.js, Express, Sequelize, MySQL, JWT, Multer (para subida de archivos), Stripe (para pagos).
 
 ---
 
