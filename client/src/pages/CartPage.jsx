@@ -11,9 +11,7 @@ const CartPage = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (user?.role === 'admin') {
-      navigate('/dashboard');
-    }
+    if (user?.role === "admin") return navigate("/dashboard");
   }, [user, navigate]);
 
   const handleFetchCart = useCallback(async () => {
@@ -30,9 +28,7 @@ const CartPage = () => {
 
   const handleQuantityInputChange = (productId, value) => {
     const quantity = Number(value);
-    if (!isNaN(quantity)) {
-      updateProductQuantity(productId, quantity);
-    }
+    if (!isNaN(quantity)) updateProductQuantity(productId, quantity);
   };
 
   const handleQuantityChange = (productId, currentQty, delta) => {
@@ -42,26 +38,22 @@ const CartPage = () => {
 
   const checkout = async () => {
     const requiredFields = ["email", "addressLine1", "city", "state", "postalCode", "country"];
-    const missingFields = requiredFields.filter(field => !user[field]);
+    const missingFields = requiredFields.filter((field) => !user[field]);
 
     if (missingFields.length > 0) {
       toast.error("Por favor, completa tu información de perfil (email y dirección) antes de proceder al pago.");
-      navigate('/profile');
-      return;
+      return navigate("/profile");
     }
 
     try {
-      const response = await api("/payments/create-checkout-session", {
+      const res = await api("/payments/create-checkout-session", {
         method: "POST",
       });
 
-      if (response.ok && response.data.url) {
-        window.location.href = response.data.url;
-      } else {
-        toast.error(response.data.error || "Error al crear la sesión de pago.");
-      }
-    } catch (err) {
-      toast.error(`Error: ${err.message}`);
+      if (res.ok && res.data.url) window.location.href = res.data.url;
+      else toast.error(res.data.error || "Error al crear la sesión de pago.");
+    } catch (e) {
+      toast.error(`Error: ${e.message}`);
     }
   };
 
@@ -104,10 +96,7 @@ const CartPage = () => {
 
         <div className="space-y-4 mb-8">
           {cart.CartItems.map((item) => (
-            <div
-              key={item.id}
-              className="bg-slate-800 border border-slate-700 rounded-lg p-6 hover:border-slate-600 transition-colors"
-            >
+            <div key={item.id} className="bg-slate-800 border border-slate-700 rounded-lg p-6 hover:border-slate-600 transition-colors">
               <div className="flex items-center justify-between gap-6">
                 <div className="flex-1">
                   <h3 className="text-lg font-semibold text-white mb-2">{item.Product.name}</h3>
@@ -166,7 +155,7 @@ const CartPage = () => {
             className="w-full px-6 py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-semibold transition-all hover:shadow-lg hover:shadow-emerald-500/30 text-lg"
           >
             Proceder al Pago
-          </button>
+          </button>w
         </div>
       </div>
     </div>

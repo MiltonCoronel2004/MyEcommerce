@@ -22,7 +22,8 @@ export const createCheckoutSession = async (req, res) => {
   const { id: userId } = req.authInfo;
 
   const { CLIENT_URL, SERVER_URL } = process.env;
-  if (!CLIENT_URL || !SERVER_URL) return res.status(500).json({
+  if (!CLIENT_URL || !SERVER_URL)
+    return res.status(500).json({
       error: true,
       msg: "Las variables de entorno CLIENT_URL y SERVER_URL son necesarias.",
     });
@@ -113,7 +114,6 @@ export const verifyPaymentSession = async (req, res) => {
       return res.status(404).json({ error: true, msg: "Carrito no encontrado." });
     }
 
-    // Stock validation
     for (const item of cart.CartItems) {
       if (item.Product.stock < item.quantity) {
         await transaction.rollback();
