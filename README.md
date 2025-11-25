@@ -42,8 +42,6 @@ Esta es una aplicación full-stack de comercio electrónico que incluye un front
 
 La aplicación se estructura en layouts y rutas para separar las vistas públicas, las de usuarios autenticados y las de administradores.
 
-> **Nota**: Las siguientes secciones incluyen marcadores de posición para imágenes de la interfaz de usuario. Reemplace `[Imagen de ...]` con capturas de pantalla reales de la aplicación.
-
 ### Rutas Públicas
 
 Estas rutas son accesibles para cualquier visitante del sitio.
@@ -51,12 +49,10 @@ Estas rutas son accesibles para cualquier visitante del sitio.
 - **`GET /`**
   - **Página**: `HomePage`
   - **Descripción**: La página de inicio de la tienda. Muestra un listado de productos destacados o todos los productos disponibles. Permite a los usuarios ver los productos y navegar a sus páginas de detalle.
-  - **Imagen**: `[Imagen de la página de inicio con productos]`
 
 - **`GET /product/:id`**
   - **Página**: `ProductDetailPage`
   - **Descripción**: Muestra la información detallada de un producto específico, incluyendo nombre, descripción, precio, imagen y un botón para "Añadir al carrito".
-  - **Imagen**: `[Imagen de la página de detalle de un producto]`
 
 ### Rutas de Autenticación
 
@@ -65,12 +61,10 @@ Rutas para el registro, inicio de sesión y recuperación de contraseña. Solo s
 - **`GET /login`**
   - **Página**: `LoginPage`
   - **Descripción**: Formulario para que los usuarios inicien sesión con su email y contraseña.
-  - **Imagen**: `[Imagen de la página de Login]`
 
 - **`GET /register`**
   - **Página**: `RegisterPage`
   - **Descripción**: Formulario para que nuevos usuarios se registren en la aplicación proporcionando su nombre, email y contraseña.
-  - **Imagen**: `[Imagen de la página de Registro]`
 
 - **`GET /forgot-password`**
   - **Página**: `ForgotPasswordPage`
@@ -87,12 +81,10 @@ Estas rutas solo son accesibles para usuarios que han iniciado sesión.
 - **`GET /profile`**
   - **Página**: `ProfilePage`
   - **Descripción**: Página de perfil del usuario donde puede ver y actualizar su información personal (nombre, email).
-  - **Imagen**: `[Imagen de la página de Perfil de Usuario]`
 
 - **`GET /cart`**
   - **Página**: `CartPage`
   - **Descripción**: Muestra el contenido del carrito de compras del usuario. Permite actualizar la cantidad de productos, eliminarlos del carrito y proceder al pago.
-  - **Imagen**: `[Imagen de la página del Carrito de Compras]`
 
 - **`GET /orders`**
   - **Página**: `MyOrdersPage`
@@ -101,7 +93,6 @@ Estas rutas solo son accesibles para usuarios que han iniciado sesión.
 - **`GET /order/success`**
   - **Página**: `PaymentSuccessPage`
   - **Descripción**: Página a la que se redirige al usuario después de un pago exitoso. Muestra una confirmación de la orden.
-  - **Imagen**: `[Imagen de la página de pago exitoso]`
 
 - **`GET /order/cancel`**
   - **Página**: `PaymentCancelPage`
@@ -118,7 +109,6 @@ Estas rutas solo son accesibles para usuarios con rol de administrador.
 - **`GET /admin/products`**
   - **Página**: `ProductListPage`
   - **Descripción**: Interfaz para gestionar (crear, ver, editar, eliminar) todos los productos de la tienda.
-  - **Imagen**: `[Imagen de la gestión de productos del admin]`
 
 - **`GET /admin/categories`**
   - **Página**: `CategoryListPage`
@@ -182,7 +172,7 @@ Autentica un usuario y devuelve un token.
     "token": "ey..."
   }
   ```
-  
+
 ---
 
 ### Categorías (Categories)
