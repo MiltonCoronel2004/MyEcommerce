@@ -1,4 +1,4 @@
-# Documentación del Proyecto E-commerce
+# Documentación de MyEcommerce
 
 Este documento proporciona una descripción detallada de la arquitectura, rutas y endpoints de la aplicación E-commerce, tanto para el Frontend como para el Backend.
 
