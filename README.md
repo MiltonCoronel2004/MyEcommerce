@@ -2,7 +2,7 @@
 
 Este documento proporciona una descripción detallada de la arquitectura, rutas y endpoints de la aplicación E-commerce, tanto para el Frontend como para el Backend.
 
-## 📜 Tabla de Contenidos
+##  Tabla de Contenidos
 
 - [Visión General del Proyecto](#-visión-general-del-proyecto)
 - [Tecnologías Utilizadas](#-tecnologías-utilizadas)
@@ -22,7 +22,7 @@ Este documento proporciona una descripción detallada de la arquitectura, rutas 
 
 ---
 
-## 🔭 Visión General del Proyecto
+##  Visión General del Proyecto
 
 Esta es una aplicación full-stack de comercio electrónico que incluye un frontend en React para la interacción del usuario y un backend en Node.js/Express para la lógica de negocio y la gestión de la base de datos.
 
@@ -31,14 +31,14 @@ Esta es una aplicación full-stack de comercio electrónico que incluye un front
 
 ---
 
-## 🛠️ Tecnologías Utilizadas
+##  Tecnologías Utilizadas
 
 - **Frontend**: React, React Router, Zustand, TailwindCSS, Vite.
 - **Backend**: Node.js, Express, Sequelize, PostgreSQL (o cualquier SQL compatible), JWT, Multer (para subida de archivos), Stripe (para pagos).
 
 ---
 
-## 🖼️ Documentación Frontend
+##  Documentación Frontend
 
 La aplicación se estructura en layouts y rutas para separar las vistas públicas, las de usuarios autenticados y las de administradores.
 
@@ -120,7 +120,7 @@ Estas rutas solo son accesibles para usuarios con rol de administrador.
 
 ---
 
-## 📡 Documentación Backend (API)
+##  Documentación Backend (API)
 
 La API sigue los principios REST y utiliza JSON para el intercambio de datos.
 
