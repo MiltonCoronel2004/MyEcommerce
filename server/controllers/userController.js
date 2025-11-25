@@ -110,7 +110,7 @@ export const getProfile = async (req, res) => {
       attributes: { exclude: ["passwordHash"] },
     });
     if (!user) return res.status(404).json({ error: true, msg: "Usuario no encontrado." });
-    
+
     res.json(user);
   } catch (e) {
     res.status(500).json({ error: true, msg: e.message });
@@ -120,8 +120,8 @@ export const getProfile = async (req, res) => {
 export const verifyToken = async (req, res) => {
   try {
     const { token } = req.params;
-    if (!token) return res.status(400).json({ error: true, msg: "No se proporcionó ningún token." });
-    
+    if (!token) return res.status(400).json({ error: true, msg: "No se proporcionó ningún token" });
+
     jwt.verify(token, JWT_SECRET);
     res.json({ error: false, msg: "Token Válido" });
   } catch (e) {

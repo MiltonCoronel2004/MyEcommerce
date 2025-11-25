@@ -1,4 +1,3 @@
-import PDFDocument from "pdfkit";
 import fs from "fs";
 
 export const streamToBuffer = (stream) => {
@@ -16,14 +15,8 @@ export const drawHeader = (doc, title, subtitle) => {
     doc.image(logoPath, 50, 45, { width: 50 });
   }
 
-  doc
-    .fontSize(20)
-    .font("Helvetica-Bold")
-    .text(title, { align: "center" });
-  doc
-    .fontSize(12)
-    .font("Helvetica")
-    .text(subtitle, { align: "center" });
+  doc.fontSize(20).font("Helvetica-Bold").text(title, { align: "center" });
+  doc.fontSize(12).font("Helvetica").text(subtitle, { align: "center" });
 
   doc.moveDown(2);
 };
@@ -33,10 +26,13 @@ export const drawFooter = (doc) => {
   for (let i = 0; i < pageCount; i++) {
     doc.switchToPage(i);
     const text = `Página ${i + 1} de ${pageCount} | Generado el: ${new Date().toLocaleDateString()}`;
-    doc.fontSize(8).font("Helvetica").text(text, doc.page.margins.left, doc.page.height - 50, {
-      align: "center",
-      width: doc.page.width - doc.page.margins.left - doc.page.margins.right,
-    });
+    doc
+      .fontSize(8)
+      .font("Helvetica")
+      .text(text, doc.page.margins.left, doc.page.height - 50, {
+        align: "center",
+        width: doc.page.width - doc.page.margins.left - doc.page.margins.right,
+      });
   }
 };
 
@@ -79,20 +75,25 @@ export const drawTable = (doc, table, options = {}) => {
     let currentX = startX;
     doc.fontSize(fontSize).font(isHeader ? "Helvetica-Bold" : "Helvetica");
 
-    const rowHeight = Math.max(
+    const rowHeight =
+      Math.max(
         ...row.map((cell, i) => {
           if (cell === null || cell === undefined) return 0;
           return doc.heightOfString(String(cell), {
             width: columnSpans[i] - cellPadding * 2,
           });
         })
-      ) + cellPadding * 2;
+      ) +
+      cellPadding * 2;
 
     // Background color
     doc.save();
-    doc.fillColor(isHeader ? headerColor : isEven ? rowEvenColor : rowOddColor).rect(startX, tableTop, tableWidth, rowHeight).fill();
+    doc
+      .fillColor(isHeader ? headerColor : isEven ? rowEvenColor : rowOddColor)
+      .rect(startX, tableTop, tableWidth, rowHeight)
+      .fill();
     doc.restore();
-    
+
     // Text and lines
     doc.fillColor("black");
     row.forEach((cell, i) => {

@@ -29,9 +29,7 @@ import MyOrdersPage from "./pages/MyOrdersPage";
 import OrderListPage from "./pages/Admin/OrderListPage";
 
 function App() {
-  // Estado para controlar la inicialización de la app.
-  const [isInitialized, setIsInitialized] = useState(false);
-  const { validateToken } = useAuthStore();
+  const { loading, checkAuth } = useAuthStore();
 
   /**
    * Efecto de inicialización.
@@ -40,15 +38,11 @@ function App() {
    * entre recargas de la página.
    */
   useEffect(() => {
-    const initialize = async () => {
-      await validateToken();
-      setIsInitialized(true); // Marca la inicialización como completada.
-    };
-    initialize();
-  }, [validateToken]);
+    checkAuth();
+  }, [checkAuth]);
 
   // Muestra un indicador de carga global mientras se valida el token.
-  if (!isInitialized) return <Loading />;
+  if (loading) return <Loading />;
 
   return (
     <Router>

@@ -9,10 +9,6 @@ const BASE_URL = "http://localhost:3000/api";
  *  - Obtiene el token de autenticación del `authStore` y lo inyecta en los headers.
  *  - Establece el `Content-Type` a `application/json` por defecto.
  *  - Parsea la respuesta JSON.
- *
- * @param {string} url - La URL del endpoint (ej: "/products").
- * @param {object} options - Opciones de configuración para `fetch` (ej: method, body).
- * @returns {Promise<any>} La respuesta JSON de la API.
  */
 const api = async (url, options = {}) => {
   // Accede al estado de Zustand fuera de un componente de React.

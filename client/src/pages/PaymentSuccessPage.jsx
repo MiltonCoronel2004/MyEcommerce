@@ -29,15 +29,11 @@ const PaymentSuccessPage = () => {
           body: JSON.stringify({ session_id: sessionId }),
         });
 
-        if (data.error) {
-          throw new Error(data.error);
-        }
-        
+        if (data.error) throw new Error(data.error);
+
         setOrderId(data.orderId);
         toast.success(data.message || "¡Pago verificado con éxito!");
-        // Fetch the cart again to update the cart icon in the header (it should be empty)
         fetchCart();
-
       } catch (err) {
         setError(err.message || "Ocurrió un error al verificar el pago.");
         toast.error(err.message || "Ocurrió un error al verificar el pago.");
@@ -45,7 +41,7 @@ const PaymentSuccessPage = () => {
         setLoading(false);
       }
     };
-    
+
     if (!verificationInitiated.current) {
       verificationInitiated.current = true;
       verifyPayment();
@@ -71,10 +67,7 @@ const PaymentSuccessPage = () => {
           <AlertCircle className="mx-auto text-red-400 mb-6" size={80} />
           <h2 className="text-3xl font-bold text-white mb-4">Error en el Pago</h2>
           <p className="text-slate-400 text-lg mb-8">{error}</p>
-          <Link
-            to="/cart"
-            className="block w-full px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold"
-          >
+          <Link to="/cart" className="block w-full px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold">
             Volver al Carrito
           </Link>
         </div>
@@ -93,16 +86,10 @@ const PaymentSuccessPage = () => {
             : "Gracias por tu compra. Tu pedido ha sido procesado correctamente."}
         </p>
         <div className="space-y-4">
-          <Link
-            to="/orders"
-            className="block w-full px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-semibold"
-          >
+          <Link to="/orders" className="block w-full px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-semibold">
             Ver mis Pedidos
           </Link>
-          <Link
-            to="/"
-            className="block w-full px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold"
-          >
+          <Link to="/" className="block w-full px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg font-semibold">
             Seguir Comprando
           </Link>
         </div>

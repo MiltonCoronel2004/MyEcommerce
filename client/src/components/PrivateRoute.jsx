@@ -8,18 +8,20 @@ import useAuthStore from "../store/authStore";
  * Este componente envuelve las rutas que solo deben ser accesibles
  * por usuarios que han iniciado sesión.
  *
- * Comprueba si existe un 'usuario' en el estado global de autenticación (`useAuthStore`).
+ * Se ejecuta DESPUÉS de que la verificación de token inicial en `App.jsx` ha terminado.
+ * Simplemente comprueba si existe un 'usuario' en el estado global.
+ *
  * - Si no hay usuario, redirige a la página de login (`/login`).
  * - Si hay un usuario, renderiza el contenido de la ruta anidada a través de `<Outlet />`.
  */
 const PrivateRoute = () => {
   const { user } = useAuthStore();
 
-  // Si no hay un usuario autenticado, redirige a la página de login.
-  // 'replace' evita que el usuario pueda volver a la ruta anterior con el botón de "atrás".
+  // Para cuando este componente se renderiza, la comprobación inicial del token ya ha finalizado.
+  // Si 'user' es null, significa que el usuario no está autenticado.
   if (!user) return <Navigate to="/login" replace />;
 
-  // Si el usuario está autenticado, permite el acceso a la ruta solicitada.
+  // Si el usuario existe, está autenticado y puede acceder a la ruta.
   return <Outlet />;
 };
 

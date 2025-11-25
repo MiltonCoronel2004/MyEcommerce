@@ -21,6 +21,7 @@ const useAuthStore = create(
       token: null, // Almacena el JWT del usuario.
       user: null, // Almacena los datos del perfil del usuario.
       cart: null, // Almacena el estado del carrito de compras.
+      loading: true, // true mientras se valida el token inicial, false después.
 
       // --- ACCIONES ---
 
@@ -147,13 +148,13 @@ const useAuthStore = create(
       },
 
       /**
-       * Valida el token almacenado al cargar la aplicación.
-       * Permite mantener al usuario logueado entre sesiones.
+       * Comprueba el estado de autenticación al cargar la aplicación.
+       * Valida el token almacenado y actualiza el estado del usuario.
        */
-      validateToken: async () => {
-        const { token } = get();
+      checkAuth: async () => {
+        const { token, logout } = get();
         if (!token) {
-          set({ user: null, token: null });
+          set({ loading: false });
           return;
         }
 
@@ -161,14 +162,17 @@ const useAuthStore = create(
           const { data, ok } = await getProfile();
           if (ok) {
             set({ user: data });
-            get().fetchCart(); // Sincroniza el carrito al validar la sesión.
-            return true;
+            get().fetchCart(); // Sincroniza el carrito si la sesión es válida.
           } else {
-            get().logout(); // Si el token es inválido o expiró, cierra la sesión.
-            return false;
+            // Si el token es inválido (ej. 401 Unauthorized), la API falla.
+            logout(); // Limpia la sesión local.
           }
         } catch (error) {
-          get().logout();
+          // En caso de error de red u otro problema.
+          logout();
+        } finally {
+          // Asegura que el estado de carga siempre se desactive al final.
+          set({ loading: false });
         }
       },
 

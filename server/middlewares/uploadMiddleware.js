@@ -21,8 +21,6 @@ const storage = multer.diskStorage({
 /**
  * Valida que el archivo subido sea una imagen.
  * Comprueba tanto la extensión del archivo como su tipo MIME.
- * @param {object} file - El objeto 'file' de Multer.
- * @param {function} cb - El callback para devolver el resultado.
  */
 function checkFileType(file, cb) {
   // Define las extensiones y tipos de archivo permitidos.

@@ -8,7 +8,6 @@ import { toast } from "react-toastify";
  * Puede manejar tanto un array de errores (de express-validator) como
  * un único mensaje de error.
  *
- * @param {object} data - El objeto 'data' de la respuesta de la API, que puede contener el error.
  */
 export const handleApiError = (data) => {
   if (data?.errors && Array.isArray(data.errors) && data.errors.length > 0) {
