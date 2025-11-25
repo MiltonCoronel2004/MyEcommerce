@@ -3,9 +3,9 @@ import Category from "../models/Category.js";
 import PDFDocument from "pdfkit";
 import { streamToBuffer, drawTable, drawHeader, drawFooter } from "../utils/pdfGenerator.js";
 
-/**
- * Obtiene todos los productos, con la opción de filtrar por categoría.
- */
+
+// Obtiene todos los productos, con la opción de filtrar por categoría.
+
 export const getAll = async (req, res) => {
   try {
     const { category } = req.query;

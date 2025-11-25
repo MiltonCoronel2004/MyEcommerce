@@ -86,7 +86,6 @@ export const drawTable = (doc, table, options = {}) => {
       ) +
       cellPadding * 2;
 
-    // Background color
     doc.save();
     doc
       .fillColor(isHeader ? headerColor : isEven ? rowEvenColor : rowOddColor)
@@ -94,7 +93,6 @@ export const drawTable = (doc, table, options = {}) => {
       .fill();
     doc.restore();
 
-    // Text and lines
     doc.fillColor("black");
     row.forEach((cell, i) => {
       if (cell === null || cell === undefined) return;
@@ -108,10 +106,8 @@ export const drawTable = (doc, table, options = {}) => {
     tableTop += rowHeight;
   };
 
-  // Draw header
   drawRow(headers, headerFontSize, true);
 
-  // Draw rows
   rows.forEach((row, i) => drawRow(row, rowFontSize, false, i % 2 === 0));
 
   doc.y = tableTop;

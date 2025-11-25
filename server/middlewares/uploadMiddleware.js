@@ -1,27 +1,26 @@
 import multer from "multer";
 import path from "path";
 
-/**
- * Configuración del almacenamiento para Multer.
- * Define dónde y con qué nombre se guardarán los archivos subidos.
- */
+
+  // Configuración del almacenamiento para Multer.
+
 const storage = multer.diskStorage({
   // Establece la carpeta de destino para los archivos.
   destination: "./uploads/",
-  /**
-   * Define el nombre del archivo.
-   * Se construye un nombre único para evitar colisiones, combinando el nombre del campo,
-   * la fecha y hora actual (timestamp), y la extensión original del archivo.
-   */
+
+    // Define el nombre del archivo.
+    // Se construye un nombre único para evitar colisiones, combinando el nombre del campo,
+    // la fecha y hora actual (timestamp), y la extensión original del archivo.
+
   filename: function (req, file, cb) {
     cb(null, file.fieldname + "-" + Date.now() + path.extname(file.originalname));
   },
 });
 
-/**
- * Valida que el archivo subido sea una imagen.
- * Comprueba tanto la extensión del archivo como su tipo MIME.
- */
+
+//  Valida que el archivo subido sea una imagen.
+//  Comprueba tanto la extensión del archivo como su tipo MIME.
+
 function checkFileType(file, cb) {
   // Define las extensiones y tipos de archivo permitidos.
   const filetypes = /jpeg|jpg|png|gif|webp/;
@@ -39,10 +38,10 @@ function checkFileType(file, cb) {
   }
 }
 
-/**
- * Middleware de Multer para gestionar la subida de archivos.
- * Utiliza la configuración de 'storage' y 'fileFilter' definida anteriormente.
- */
+
+// Middleware de Multer para gestionar la subida de archivos.
+// Utiliza la configuración de 'storage' y 'fileFilter' definida anteriormente.
+
 const upload = multer({
   storage: storage,
 

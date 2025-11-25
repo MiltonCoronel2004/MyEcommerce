@@ -55,8 +55,7 @@ const startServer = async () => {
   try {
     await sequelize.authenticate();
     console.log("Database connection has been established successfully.");
-    
-    // Synchronize models with the database
+
     await sequelize.sync({ alter: true });
     console.log("Database schema synchronized.");
 

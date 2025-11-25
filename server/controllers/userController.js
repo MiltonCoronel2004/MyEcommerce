@@ -16,15 +16,7 @@ const __dirname = path.dirname(__filename);
 
 // --- Funciones de Reseteo de Contraseña ---
 
-/**
- * Genera un token de reseteo de contraseña seguro.
- * @returns {object} Un objeto con el token original (para la URL) y su versión hasheada (para la BD).
- *
- * Se genera un token aleatorio y se crea una versión hasheada para almacenar en la base de datos.
- * Esto es una medida de seguridad: si la base de datos se viera comprometida, los atacantes
- * no podrían usar los tokens hasheados para resetear las contraseñas de los usuarios.
- * El token original solo se envía por correo electrónico.
- */
+
 const getResetPasswordToken = () => {
   // Genera un token aleatorio de 20 bytes.
   const resetToken = crypto.randomBytes(20).toString("hex");
@@ -246,7 +238,7 @@ export const forgotPassword = async (req, res) => {
     const templatePath = path.join(__dirname, "../templates/passwordReset.html");
     let html = await fs.readFile(templatePath, "utf-8");
     html = html.replace("{{resetUrl}}", resetUrl);
-    html = html.replace("{{resetUrl}}", resetUrl); // Replace both occurrences
+    html = html.replace("{{resetUrl}}", resetUrl);
 
     // Envía el correo electrónico.
     await resend.emails.send({
@@ -270,9 +262,9 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
-/**
- * Restablece la contraseña de un usuario utilizando un token válido.
- */
+
+//  Restablece la contraseña de un usuario utilizando un token válido.
+
 export const resetPassword = async (req, res) => {
   try {
     // Hashea el token recibido en la URL para compararlo con el que está en la base de datos.

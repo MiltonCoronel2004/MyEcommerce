@@ -115,7 +115,6 @@ const DashboardPage = () => {
           setHasData(true);
         }
 
-        // 1. Process Stats
         const totalSales = orders?.reduce((acc, order) => acc + parseFloat(order.total), 0) || 0;
         const totalOrders = orders?.length || 0;
         const totalCustomers = users?.filter((u) => u.role === "customer")?.length || 0;
@@ -128,7 +127,6 @@ const DashboardPage = () => {
           { label: "Valor Promedio Pedido", value: `$${avgOrderValue.toFixed(2)}`, icon: TrendingUp, color: "amber" },
         ]);
 
-        // 2. Process Monthly Sales
         const monthlySales = orders?.reduce((acc, order) => {
           const d = new Date(order.createdAt);
           const month = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
@@ -148,7 +146,6 @@ const DashboardPage = () => {
           });
         setmonthlyData(monthlyChartData);
 
-        // 3. Process Orders by Category
         const categories = products?.reduce((acc, product) => {
           acc[product.categoryId] = product.Category.name;
           return acc;
@@ -169,7 +166,6 @@ const DashboardPage = () => {
         }));
         setCategoryData(categoryChartData);
 
-        // 4. Process Order Status
         const statusCounts = orders?.reduce((acc, order) => {
           acc[order.status] = (acc[order.status] || 0) + 1;
           return acc;
@@ -178,12 +174,11 @@ const DashboardPage = () => {
           { name: "pending", value: statusCounts?.pending || 0, color: "#f59e0b" },
           { name: "paid", value: statusCounts?.paid || 0, color: "#3b82f6" },
           { name: "shipped", value: statusCounts?.shipped || 0, color: "#10b981" },
-          
+
           { name: "cancelled", value: statusCounts?.cancelled || 0, color: "#ef4444" },
         ];
         setOrderStatusData(statusChartData?.filter((s) => s.value > 0));
 
-        // 5. Process Recent Orders
         setRecentOrders(orders?.slice(0, 5) || []);
       } catch (err) {
         toast.error(err.message);
@@ -232,7 +227,6 @@ const DashboardPage = () => {
 
         {hasData ? (
           <>
-            {/* Stats Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
               {stats.map((stat, index) => (
                 <div key={index} className="bg-slate-800 border border-slate-700 rounded-lg p-6 hover:border-emerald-500/50 transition-all">
@@ -247,7 +241,6 @@ const DashboardPage = () => {
               ))}
             </div>
 
-            {/* Line Chart - Full Width */}
             <div className="bg-slate-800 border border-slate-700 rounded-lg p-6 mb-8">
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                 <TrendingUp className="text-emerald-400" size={20} />
@@ -271,9 +264,7 @@ const DashboardPage = () => {
               </ResponsiveContainer>
             </div>
 
-            {/* Charts Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              {/* Bar Chart */}
               <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                   <Package className="text-emerald-400" size={20} />
@@ -297,7 +288,6 @@ const DashboardPage = () => {
                 </ResponsiveContainer>
               </div>
 
-              {/* Pie Chart */}
               <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
                 <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                   <Activity className="text-emerald-400" size={20} />
@@ -334,7 +324,6 @@ const DashboardPage = () => {
               </div>
             </div>
 
-            {/* Recent Activity */}
             <div className="bg-slate-800 border border-slate-700 rounded-lg p-6">
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                 <Clock className="text-emerald-400" size={20} />

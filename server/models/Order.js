@@ -20,7 +20,7 @@ Order.init(
     },
     stripeSessionId: {
       type: DataTypes.STRING,
-      allowNull: true, // Allow null for orders not created via Stripe
+      allowNull: true, 
     },
     shippingAddress: {
       type: DataTypes.STRING,

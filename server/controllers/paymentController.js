@@ -84,7 +84,6 @@ export const verifyPaymentSession = async (req, res) => {
   const { session_id } = req.body;
   if (!session_id) return res.status(400).json({ error: true, msg: "No se proporcionó el ID de la sesión." });
 
-  // Check if order already exists
   try {
     const existingOrder = await Order.findOne({ where: { stripeSessionId: session_id } });
     if (existingOrder) return res.json({ success: true, orderId: existingOrder.id, message: "El pedido ya ha sido procesado." });
@@ -140,7 +139,6 @@ export const verifyPaymentSession = async (req, res) => {
 
     await OrderItem.bulkCreate(orderItems, { transaction });
 
-    // Stock deduction
     for (const item of cart.CartItems) {
       await Product.update({ stock: item.Product.stock - item.quantity }, { where: { id: item.productId }, transaction });
     }

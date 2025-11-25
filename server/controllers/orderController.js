@@ -6,11 +6,11 @@ import CartItem from "../models/CartItem.js";
 import Product from "../models/Product.js";
 import User from "../models/User.js";
 
-/**
- * Crea un nuevo pedido a partir del carrito de un usuario.
- * Este proceso se ejecuta dentro de una transacción de base de datos para garantizar
- * la integridad de los datos. Si cualquier paso falla, toda la operación se revierte.
- */
+
+// Crea un nuevo pedido a partir del carrito de un usuario.
+// Este proceso se ejecuta dentro de una transacción de base de datos para garantizar
+// la integridad de los datos. Si cualquier paso falla, toda la operación se revierte.
+
 export const create = async (req, res) => {
   // Inicia una nueva transacción.
   const t = await sequelize.transaction();
