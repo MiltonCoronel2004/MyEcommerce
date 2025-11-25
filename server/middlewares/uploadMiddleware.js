@@ -26,7 +26,7 @@ const storage = multer.diskStorage({
  */
 function checkFileType(file, cb) {
   // Define las extensiones y tipos de archivo permitidos.
-  const filetypes = /jpeg|jpg|png|gif/;
+  const filetypes = /jpeg|jpg|png|gif|webp/;
   // Comprueba la extensión del archivo.
   const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
   // Comprueba el tipo MIME del archivo.
@@ -37,7 +37,7 @@ function checkFileType(file, cb) {
     return cb(null, true);
   } else {
     // Si no, se rechaza con un mensaje de error.
-    cb("Error: Solo se permiten imágenes (jpeg, jpg, png, gif).");
+    cb(new Error("Error: Solo se permiten imágenes (jpeg, jpg, png, gif, webp)."));
   }
 }
 
@@ -47,12 +47,10 @@ function checkFileType(file, cb) {
  */
 const upload = multer({
   storage: storage,
-  // Opcional: se pueden establecer límites, como el tamaño del archivo.
-  // limits: { fileSize: 1000000 }, // Límite de 1MB
+
   fileFilter: function (req, file, cb) {
     checkFileType(file, cb);
   },
-  // Define que se aceptará un único archivo del campo 'image' en el formulario.
 }).single("image");
 
 export default upload;

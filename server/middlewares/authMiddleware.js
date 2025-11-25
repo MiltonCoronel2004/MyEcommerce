@@ -43,6 +43,6 @@ export const admin = (req, res, next) => {
     next();
   } else {
     // Si no, deniega el acceso con un estado 403 Forbidden.
-    res.status(403).json({ error: true, msg: "No autorizado como administrador." });
+    res.status(403).json({ error: true, msg: "No tiene permisos de administrador." });
   }
 };

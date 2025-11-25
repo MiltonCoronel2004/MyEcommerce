@@ -12,12 +12,9 @@ const LoginPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email || !password) {
-      return toast.error("El email y la contraseña son obligatorios");
-    }
-    if (!/\S+@\S+\.\S+/.test(email)) {
-      return toast.error("Por favor, introduce un correo electrónico válido.");
-    }
+    if (!email || !password) return toast.error("El email y la contraseña son obligatorios");
+
+    if (!/\S+@\S+\.\S+/.test(email)) return toast.error("Por favor, introduce un correo electrónico válido.");
 
     try {
       const { data, ok } = await login(email, password);

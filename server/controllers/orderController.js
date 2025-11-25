@@ -92,10 +92,10 @@ export const create = async (req, res) => {
     // Si todo ha ido bien, confirma la transacción.
     await t.commit();
     res.status(201).json(order);
-  } catch (error) {
+  } catch (e) {
     // Si algo falla en cualquier punto, revierte todos los cambios en la base de datos.
     await t.rollback();
-    res.status(400).json({ error: true, msg: error.message });
+    res.status(500).json({ error: true, msg: e.message });
   }
 };
 
@@ -107,8 +107,8 @@ export const getForUser = async (req, res) => {
       order: [["createdAt", "DESC"]],
     });
     res.json(orders);
-  } catch (error) {
-    res.status(500).json({ error: true, msg: "Error al recuperar los pedidos", details: error.message });
+  } catch (e) {
+    res.status(500).json({ error: true, msg: e.message });
   }
 };
 
@@ -118,12 +118,11 @@ export const getByIdForUser = async (req, res) => {
       where: { id: req.params.id, userId: req.authInfo.id },
       include: [{ model: OrderItem, as: "OrderItems", include: [Product] }],
     });
-    if (!order) {
-      return res.status(404).json({ error: true, msg: "Pedido no encontrado" });
-    }
+
+    if (!order) return res.status(404).json({ error: true, msg: "Pedido no encontrado" });
     res.json(order);
-  } catch (error) {
-    res.status(500).json({ error: true, msg: error.message });
+  } catch (e) {
+    res.status(500).json({ error: true, msg: e.message });
   }
 };
 
@@ -139,25 +138,21 @@ export const getAllAdmin = async (req, res) => {
       order: [["createdAt", "DESC"]],
     });
     res.json(orders);
-  } catch (error) {
-    res.status(500).json({ error: true, msg: "Error al recuperar todos los pedidos", details: error.message });
+  } catch (e) {
+    res.status(500).json({ error: true, msg: e.message });
   }
 };
 
 export const updateStatusAdmin = async (req, res) => {
   try {
     const { status } = req.body;
-    if (!status) {
-      return res.status(400).json({ error: true, msg: "El estado es obligatorio" });
-    }
+    if (!status) return res.status(400).json({ error: true, msg: "El estado es obligatorio" });
     const order = await Order.findByPk(req.params.id);
-    if (!order) {
-      return res.status(404).json({ error: true, msg: "Pedido no encontrado" });
-    }
+    if (!order) return res.status(404).json({ error: true, msg: "Pedido no encontrado" });
     order.status = status;
     await order.save();
     res.json(order);
-  } catch (error) {
-    res.status(400).json({ error: true, msg: error.message });
+  } catch (e) {
+    res.status(500).json({ error: true, msg: e.message });
   }
 };

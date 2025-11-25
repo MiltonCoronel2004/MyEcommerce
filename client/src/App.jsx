@@ -48,9 +48,7 @@ function App() {
   }, [validateToken]);
 
   // Muestra un indicador de carga global mientras se valida el token.
-  if (!isInitialized) {
-    return <Loading />;
-  }
+  if (!isInitialized) return <Loading />;
 
   return (
     <Router>

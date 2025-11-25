@@ -178,7 +178,7 @@ const DashboardPage = () => {
           { name: "pending", value: statusCounts?.pending || 0, color: "#f59e0b" },
           { name: "paid", value: statusCounts?.paid || 0, color: "#3b82f6" },
           { name: "shipped", value: statusCounts?.shipped || 0, color: "#10b981" },
-          { name: "completed", value: statusCounts?.completed || 0, color: "#84cc16" },
+          
           { name: "cancelled", value: statusCounts?.cancelled || 0, color: "#ef4444" },
         ];
         setOrderStatusData(statusChartData?.filter((s) => s.value > 0));

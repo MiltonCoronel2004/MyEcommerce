@@ -32,16 +32,20 @@ const CategoryFormModal = ({ category, onClose, onSaveSuccess }) => {
     const method = isEditing ? "PUT" : "POST";
 
     try {
-      const data = await api(url, {
+      const response = await api(url, {
         method,
         body: JSON.stringify(formData),
       });
-      if (data.error || data.errors) {
-        if (Array.isArray(data.errors) && data.errors.length > 0)
-          data.errors.forEach((e) => toast.error(typeof e === "string" ? e : e.msg || JSON.stringify(e)));
-        else if (data.msg) toast.error(data.msg);
-        else toast.error("Ocurrió un error desconocido");
 
+      if (!response.ok) {
+        const errorData = response.data;
+        if (errorData && Array.isArray(errorData.errors)) {
+          errorData.errors.forEach((e) => toast.error(e.msg || "Error de validación"));
+        } else if (errorData && errorData.msg) {
+          toast.error(errorData.msg);
+        } else {
+          toast.error(`Error: ${response.status} ${response.statusText || "Ocurrió un error"}`);
+        }
         return;
       }
 
@@ -49,16 +53,7 @@ const CategoryFormModal = ({ category, onClose, onSaveSuccess }) => {
       onSaveSuccess();
       onClose();
     } catch (err) {
-      try {
-        const errors = JSON.parse(err.message);
-        if (Array.isArray(errors)) {
-          errors.forEach((error) => toast.error(error.msg));
-        } else {
-          toast.error(err.message);
-        }
-      } catch (parseError) {
-        toast.error(err.message);
-      }
+      toast.error(err.message || "Error de red. No se pudo conectar con el servidor.");
     } finally {
       setLoading(false);
     }

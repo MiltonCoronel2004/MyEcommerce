@@ -22,12 +22,10 @@ export const createCheckoutSession = async (req, res) => {
   const { id: userId } = req.authInfo;
 
   const { CLIENT_URL, SERVER_URL } = process.env;
-  if (!CLIENT_URL || !SERVER_URL) {
-    return res.status(500).json({
+  if (!CLIENT_URL || !SERVER_URL) return res.status(500).json({
       error: true,
       msg: "Las variables de entorno CLIENT_URL y SERVER_URL son necesarias.",
     });
-  }
 
   try {
     const cart = await Cart.findOne({
@@ -41,9 +39,7 @@ export const createCheckoutSession = async (req, res) => {
       },
     });
 
-    if (!cart || !cart.CartItems || cart.CartItems.length === 0) {
-      return res.status(400).json({ error: "El carrito está vacío." });
-    }
+    if (!cart || !cart.CartItems || cart.CartItems.length === 0) return res.status(400).json({ error: true, msg: "El carrito está vacío." });
 
     const line_items = cart.CartItems.map((item) => {
       const imageUrl = item.Product.imageUrl ? `${SERVER_URL}/uploads/${item.Product.imageUrl}` : `${SERVER_URL}/uploads/computer.png`;
@@ -62,9 +58,7 @@ export const createCheckoutSession = async (req, res) => {
     });
 
     const user = await User.findByPk(userId);
-    if (!user) {
-      return res.status(404).json({ error: "Usuario no encontrado." });
-    }
+    if (!user) return res.status(404).json({ error: true, msg: "Usuario no encontrado." });
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -80,25 +74,21 @@ export const createCheckoutSession = async (req, res) => {
     });
 
     res.json({ url: session.url });
-  } catch (error) {
-    res.status(500).json({ error: "Error al crear la sesión de pago." });
+  } catch (e) {
+    res.status(500).json({ error: true, msg: e.message });
   }
 };
 
 export const verifyPaymentSession = async (req, res) => {
   const { session_id } = req.body;
-  if (!session_id) {
-    return res.status(400).json({ error: "No se proporcionó el ID de la sesión." });
-  }
+  if (!session_id) return res.status(400).json({ error: true, msg: "No se proporcionó el ID de la sesión." });
 
   // Check if order already exists
   try {
     const existingOrder = await Order.findOne({ where: { stripeSessionId: session_id } });
-    if (existingOrder) {
-      return res.json({ success: true, orderId: existingOrder.id, message: "El pedido ya ha sido procesado." });
-    }
+    if (existingOrder) return res.json({ success: true, orderId: existingOrder.id, message: "El pedido ya ha sido procesado." });
   } catch (e) {
-    return res.status(500).json({ error: "Error al verificar el pedido." });
+    return res.status(500).json({ error: true, msg: e.message });
   }
 
   const transaction = await sequelize.transaction();
@@ -108,7 +98,7 @@ export const verifyPaymentSession = async (req, res) => {
 
     if (session.payment_status !== "paid") {
       await transaction.rollback();
-      return res.status(400).json({ error: "El pago no se ha completado." });
+      return res.status(400).json({ error: true, msg: "El pago no se ha completado." });
     }
 
     const userId = session.metadata.userId;
@@ -120,14 +110,14 @@ export const verifyPaymentSession = async (req, res) => {
 
     if (!cart) {
       await transaction.rollback();
-      return res.status(404).json({ error: "Carrito no encontrado." });
+      return res.status(404).json({ error: true, msg: "Carrito no encontrado." });
     }
 
     // Stock validation
     for (const item of cart.CartItems) {
       if (item.Product.stock < item.quantity) {
         await transaction.rollback();
-        return res.status(400).json({ error: "Stock insuficiente para uno de los productos." });
+        return res.status(400).json({ error: true, msg: "Stock insuficiente para uno de los productos." });
       }
     }
 
@@ -216,8 +206,8 @@ export const verifyPaymentSession = async (req, res) => {
     }
 
     res.json({ success: true, orderId: order.id });
-  } catch (error) {
+  } catch (e) {
     await transaction.rollback();
-    res.status(500).json({ error: "Error al procesar el pago." });
+    res.status(500).json({ error: true, msg: e.message });
   }
 };

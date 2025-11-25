@@ -10,7 +10,7 @@ const statusTranslations = {
   pending: "Pendiente",
   paid: "Pagado",
   shipped: "Enviado",
-  completed: "Completado",
+  
   cancelled: "Cancelado",
 };
 

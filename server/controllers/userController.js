@@ -43,9 +43,7 @@ export const register = async (req, res) => {
     const { firstName, lastName, email, password } = req.body;
 
     const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
-      return res.status(400).json({ msg: "Ya existe un usuario con este correo electrónico." });
-    }
+    if (existingUser) return res.status(400).json({ error: true, msg: "Ya existe un usuario con este correo electrónico." });
 
     const passwordHash = await bcrypt.hash(password, 10);
 
@@ -57,8 +55,8 @@ export const register = async (req, res) => {
     });
 
     res.status(201).json({ msg: "Usuario registrado con éxito", user });
-  } catch (error) {
-    res.status(400).json({ msg: error.message });
+  } catch (e) {
+    res.status(500).json({ error: true, msg: e.message });
   }
 };
 
@@ -90,8 +88,8 @@ export const login = async (req, res) => {
     };
 
     res.json({ token, user: cleanUser });
-  } catch (error) {
-    res.status(401).json({ msg: error.message });
+  } catch (e) {
+    res.status(500).json({ error: true, msg: e.message });
   }
 };
 
@@ -101,8 +99,8 @@ export const getAll = async (req, res) => {
       attributes: { exclude: ["passwordHash"] },
     });
     res.json(users);
-  } catch (error) {
-    res.status(500).json({ msg: "Error al recuperar usuarios", details: error.message });
+  } catch (e) {
+    res.status(500).json({ error: true, msg: e.message });
   }
 };
 
@@ -111,12 +109,11 @@ export const getProfile = async (req, res) => {
     const user = await User.findByPk(req.authInfo.id, {
       attributes: { exclude: ["passwordHash"] },
     });
-    if (!user) {
-      return res.status(404).json({ msg: "Usuario no encontrado." });
-    }
+    if (!user) return res.status(404).json({ error: true, msg: "Usuario no encontrado." });
+    
     res.json(user);
-  } catch (error) {
-    res.status(500).json({ msg: error.message });
+  } catch (e) {
+    res.status(500).json({ error: true, msg: e.message });
   }
 };
 
@@ -124,19 +121,28 @@ export const verifyToken = async (req, res) => {
   try {
     const { token } = req.params;
     if (!token) return res.status(400).json({ error: true, msg: "No se proporcionó ningún token." });
+    
     jwt.verify(token, JWT_SECRET);
     res.json({ error: false, msg: "Token Válido" });
-  } catch (error) {
-    res.status(401).json({ error: true, msg: "Token inválido.", details: error.message });
+  } catch (e) {
+    res.status(401).json({ error: true, msg: e.message });
   }
 };
 
 export const updateProfile = async (req, res) => {
   try {
     const id = req.authInfo.id;
+    const { email } = req.body;
+
+    if (email) {
+      const existingUser = await User.findOne({ where: { email, id: { [Op.ne]: id } } });
+      if (existingUser) {
+        return res.status(400).json({ error: true, msg: "Ya existe un usuario con este correo electrónico." });
+      }
+    }
 
     const user = await User.findByPk(id);
-    if (!user) return res.status(404).json({ msg: "Usuario no encontrado." });
+    if (!user) return res.status(404).json({ error: true, msg: "Usuario no encontrado." });
 
     const updatedFields = {
       firstName: req.body.firstName ?? user.firstName,
@@ -158,34 +164,28 @@ export const updateProfile = async (req, res) => {
     });
 
     res.json(newUser);
-  } catch (error) {
-    res.status(400).json({ msg: error.message });
+  } catch (e) {
+    res.status(500).json({ error: true, msg: e.message });
   }
 };
 
 export const updatePassword = async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
-    if (!oldPassword || !newPassword) {
-      return res.status(400).json({ msg: "Se requieren la contraseña anterior y la nueva." });
-    }
+    if (!oldPassword || !newPassword) return res.status(400).json({ error: true, msg: "Se requieren la contraseña anterior y la nueva." });
 
     const user = await User.findByPk(req.authInfo.id);
-    if (!user) {
-      return res.status(404).json({ msg: "Usuario no encontrado." });
-    }
+    if (!user) return res.status(404).json({ error: true, msg: "Usuario no encontrado." });
 
     const isMatch = await bcrypt.compare(oldPassword, user.passwordHash);
-    if (!isMatch) {
-      return res.status(401).json({ msg: "La contraseña anterior es incorrecta." });
-    }
+    if (!isMatch) return res.status(401).json({ error: true, msg: "La contraseña anterior es incorrecta." });
 
     user.passwordHash = await bcrypt.hash(newPassword, 10);
     await user.save();
 
     res.json({ msg: "Contraseña actualizada con éxito." });
-  } catch (error) {
-    res.status(400).json({ msg: error.message });
+  } catch (e) {
+    res.status(500).json({ error: true, msg: e.message });
   }
 };
 
@@ -194,14 +194,10 @@ export const updatePassword = async (req, res) => {
 export const updateRoleAdmin = async (req, res) => {
   try {
     const { role } = req.body;
-    if (!role) {
-      return res.status(400).json({ msg: "El rol es obligatorio." });
-    }
+    if (!role) return res.status(400).json({ error: true, msg: "El rol es obligatorio." });
 
     const user = await User.findByPk(req.params.id);
-    if (!user) {
-      return res.status(404).json({ msg: "Usuario no encontrado." });
-    }
+    if (!user) return res.status(404).json({ error: true, msg: "Usuario no encontrado." });
 
     user.role = role;
     await user.save();
@@ -209,22 +205,20 @@ export const updateRoleAdmin = async (req, res) => {
     const userJson = user.toJSON();
     delete userJson.passwordHash;
     res.json(userJson);
-  } catch (error) {
-    res.status(400).json({ msg: error.message });
+  } catch (e) {
+    res.status(500).json({ error: true, msg: e.message });
   }
 };
 
 export const deleteUserAdmin = async (req, res) => {
   try {
     const user = await User.findByPk(req.params.id);
-    if (!user) {
-      return res.status(404).json({ msg: "Usuario no encontrado." });
-    }
+    if (!user) return res.status(404).json({ error: true, msg: "Usuario no encontrado." });
 
     await user.destroy();
     res.json({ msg: "Usuario eliminado con éxito." });
-  } catch (error) {
-    res.status(500).json({ msg: error.message });
+  } catch (e) {
+    res.status(500).json({ error: true, msg: e.message });
   }
 };
 
@@ -263,7 +257,7 @@ export const forgotPassword = async (req, res) => {
     });
 
     res.status(200).json({ success: true, data: "Correo electrónico enviado." });
-  } catch (error) {
+  } catch (e) {
     // Limpia los campos de reseteo si algo falla para evitar estados inconsistentes.
     const user = await User.findOne({ where: { email: req.body.email } });
     if (user) {
@@ -271,8 +265,8 @@ export const forgotPassword = async (req, res) => {
       user.resetPasswordExpire = null;
       await user.save();
     }
-    console.error("Error en forgotPassword:", error);
-    res.status(500).json({ msg: "Error en el servidor al intentar enviar el correo de reseteo." });
+    console.error("Error en forgotPassword:", e);
+    res.status(500).json({ error: true, msg: e.message });
   }
 };
 
@@ -292,9 +286,7 @@ export const resetPassword = async (req, res) => {
       },
     });
 
-    if (!user) {
-      return res.status(400).json({ msg: "El token de reseteo es inválido o ha expirado." });
-    }
+    if (!user) return res.status(400).json({ error: true, msg: "El token de reseteo es inválido o ha expirado." });
 
     // Actualiza la contraseña del usuario con la nueva.
     user.passwordHash = await bcrypt.hash(req.body.password, 10);
@@ -304,7 +296,7 @@ export const resetPassword = async (req, res) => {
     await user.save();
 
     res.json({ msg: "Contraseña restablecida con éxito." });
-  } catch (error) {
-    res.status(400).json({ msg: error.message });
+  } catch (e) {
+    res.status(500).json({ error: true, msg: e.message });
   }
 };

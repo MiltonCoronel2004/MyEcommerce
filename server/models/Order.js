@@ -15,7 +15,7 @@ Order.init(
       allowNull: false,
     },
     status: {
-      type: DataTypes.ENUM('pending', 'paid', 'completed', 'shipped', 'cancelled'),
+      type: DataTypes.ENUM('pending', 'paid', 'shipped', 'cancelled'),
       defaultValue: 'pending',
     },
     stripeSessionId: {

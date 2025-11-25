@@ -34,9 +34,7 @@ const ProductFormModal = ({ product, onClose, onSave }) => {
         stock: product.stock || "",
         categoryId: product.categoryId || "",
       });
-      if (product.imageUrl) {
-        setImagePreview(`${import.meta.env.VITE_SERVER_URL}/uploads/${product.imageUrl}`);
-      }
+      if (product.imageUrl) setImagePreview(`${import.meta.env.VITE_SERVER_URL}/uploads/${product.imageUrl}`);
     }
   }, [product]);
 
@@ -59,10 +57,8 @@ const ProductFormModal = ({ product, onClose, onSave }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.categoryId) {
-      toast.error("Por favor, seleccione una categoría.");
-      return;
-    }
+    if (!formData.categoryId) return toast.error("Por favor, seleccione una categoría.");
+
     const productData = new FormData();
 
     Object.keys(formData).forEach((key) => {

@@ -5,12 +5,7 @@ import User from "../models/User.js";
 import OrderItem from "../models/OrderItem.js";
 import Product from "../models/Product.js";
 import Category from "../models/Category.js";
-import {
-  streamToBuffer,
-  drawTable,
-  drawHeader,
-  drawFooter,
-} from "../utils/pdfGenerator.js";
+import { streamToBuffer, drawTable, drawHeader, drawFooter } from "../utils/pdfGenerator.js";
 
 const getDashboardStats = async () => {
   const orders = await Order.findAll();
@@ -18,10 +13,7 @@ const getDashboardStats = async () => {
   const products = await Product.findAll();
   const categories = await Category.findAll();
 
-  const totalSales = orders.reduce(
-    (acc, order) => acc + parseFloat(order.total),
-    0
-  );
+  const totalSales = orders.reduce((acc, order) => acc + parseFloat(order.total), 0);
   const totalOrders = orders.length;
   const totalCustomers = users.filter((u) => u.role !== "admin").length;
   const totalProducts = products.length;
@@ -69,11 +61,9 @@ export const exportDashboard = async (req, res) => {
         filename: `dashboard-report-${timestamp}.pdf`,
         fileData,
       });
-    } else {
-      res.status(400).json({ error: "Invalid format" });
     }
-  } catch (error) {
-    res.status(500).json({ error: "Error generating report", msg: error.message });
+  } catch (e) {
+    res.status(500).json({ error: true, msg: e.message });
   }
 };
 
@@ -106,10 +96,7 @@ export const exportOrders = async (req, res) => {
       Total: `$${order.total}`,
       Estado: order.status,
       Fecha: order.createdAt.toLocaleDateString(),
-      Items: order.OrderItems.map(
-        (item) =>
-          `${item.quantity}x ${item.Product.name} (${item.Product.Category.name})`
-      ).join("\n"),
+      Items: order.OrderItems.map((item) => `${item.quantity}x ${item.Product.name} (${item.Product.Category.name})`).join("\n"),
     }));
 
     if (format === "csv") {
@@ -126,14 +113,7 @@ export const exportOrders = async (req, res) => {
 
       const table = {
         headers: ["ID", "Cliente", "Total", "Estado", "Fecha", "Items"],
-        rows: reportData.map((order) => [
-          order.ID,
-          order.Cliente,
-          order.Total,
-          order.Estado,
-          order.Fecha,
-          order.Items,
-        ]),
+        rows: reportData.map((order) => [order.ID, order.Cliente, order.Total, order.Estado, order.Fecha, order.Items]),
       };
 
       drawTable(doc, table);
@@ -147,9 +127,9 @@ export const exportOrders = async (req, res) => {
         fileData,
       });
     } else {
-      res.status(400).json({ error: "Invalid format" });
+      res.status(400).json({ error: true, msg: "Invalid format" });
     }
-  } catch (error) {
-    res.status(500).json({ error: "Error generating report", msg: error.message });
+  } catch (e) {
+    res.status(500).json({ error: true, msg: e.message });
   }
 };
