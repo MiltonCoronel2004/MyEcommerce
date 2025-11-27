@@ -53,9 +53,8 @@ Estas rutas son accesibles para cualquier visitante del sitio.
   - **Descripción**: La página de inicio de la tienda. Muestra un listado de productos destacados o todos los productos disponibles. Permite a los usuarios ver los productos y navegar a sus páginas de detalle.
 
 - **`GET /product/:id`**
-  
+  <img width="1600" height="786" alt="image" src="https://github.com/user-attachments/assets/5337a4a1-9459-4131-b762-773e5b862303" />
   - **Página**: `ProductDetailPage`
-    <img width="838" height="713" alt="image" src="https://github.com/user-attachments/assets/dfdeb63b-7a99-49c4-b57d-72a1b932d6bc" />
 
   - **Descripción**: Muestra la información detallada de un producto específico, incluyendo nombre, descripción, precio, imagen y un botón para "Añadir al carrito".
 
@@ -90,24 +89,30 @@ Rutas para el registro, inicio de sesión y recuperación de contraseña. Solo s
 Estas rutas solo son accesibles para usuarios que han iniciado sesión.
 
 - **`GET /profile`**
+  <img width="1007" height="904" alt="image" src="https://github.com/user-attachments/assets/230de624-4ac8-4c9a-9907-7265582b9e51" />
   - **Página**: `ProfilePage`
+    
   - **Descripción**: Página de perfil del usuario donde puede ver y actualizar su información personal (nombre, email).
 
 - **`GET /cart`**
+  <img width="1600" height="789" alt="image" src="https://github.com/user-attachments/assets/b4dfd6f4-53a0-438b-94de-cd3926dd75e3" />
   - **Página**: `CartPage`
+    
   - **Descripción**: Muestra el contenido del carrito de compras del usuario. Permite actualizar la cantidad de productos, eliminarlos del carrito y proceder al pago.
 
 - **`GET /orders`**
-
+  <img width="1600" height="788" alt="image" src="https://github.com/user-attachments/assets/8c5eba5b-ba6e-4d7d-9973-f06df18592e1" />  
   - **Página**: `MyOrdersPage`
     
   - **Descripción**: Muestra un historial de todas las órdenes realizadas por el usuario, incluyendo su estado.
 
 - **`GET /order/success`**
+  
   - **Página**: `PaymentSuccessPage`
   - **Descripción**: Página a la que se redirige al usuario después de un pago exitoso. Muestra una confirmación de la orden.
 
 - **`GET /order/cancel`**
+  <img width="1600" height="790" alt="image" src="https://github.com/user-attachments/assets/85143540-ff2c-410c-b0a6-ea1b689193b1" />
   - **Página**: `PaymentCancelPage`
   - **Descripción**: Página a la que se redirige al usuario si cancela el proceso de pago.
 
