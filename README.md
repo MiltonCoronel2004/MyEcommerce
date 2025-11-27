@@ -47,7 +47,9 @@ La aplicación se estructura en layouts y rutas para separar las vistas pública
 Estas rutas son accesibles para cualquier visitante del sitio.
 
 - **`GET /`**
+  ![WhatsApp Image 2025-11-27 at 1 23 19 PM (1)](https://github.com/user-attachments/assets/13c432b5-30e2-436e-adb7-620da3ee72e0)
   - **Página**: `HomePage`
+    
   - **Descripción**: La página de inicio de la tienda. Muestra un listado de productos destacados o todos los productos disponibles. Permite a los usuarios ver los productos y navegar a sus páginas de detalle.
 
 - **`GET /product/:id`**
@@ -65,11 +67,15 @@ Rutas para el registro, inicio de sesión y recuperación de contraseña. Solo s
   - **Descripción**: Formulario para que los usuarios inicien sesión con su email y contraseña.
 
 - **`GET /register`**
+  ![WhatsApp Image 2025-11-27 at 1 23 18 PM (1)](https://github.com/user-attachments/assets/5436fb1e-9cc1-497d-8076-2037baaa7941)
   - **Página**: `RegisterPage`
+    
   - **Descripción**: Formulario para que nuevos usuarios se registren en la aplicación proporcionando su nombre, email y contraseña.
 
 - **`GET /forgot-password`**
+  ![WhatsApp Image 2025-11-27 at 1 23 19 PM](https://github.com/user-attachments/assets/2cfbe5b6-3c22-453a-b0a7-c35dc9604e9c)
   - **Página**: `ForgotPasswordPage`
+    
   - **Descripción**: Formulario donde un usuario puede ingresar su email para recibir un enlace y restablecer su contraseña.
 
 - **`GET /reset-password/:token`**
@@ -89,7 +95,9 @@ Estas rutas solo son accesibles para usuarios que han iniciado sesión.
   - **Descripción**: Muestra el contenido del carrito de compras del usuario. Permite actualizar la cantidad de productos, eliminarlos del carrito y proceder al pago.
 
 - **`GET /orders`**
+
   - **Página**: `MyOrdersPage`
+    
   - **Descripción**: Muestra un historial de todas las órdenes realizadas por el usuario, incluyendo su estado.
 
 - **`GET /order/success`**
@@ -105,19 +113,27 @@ Estas rutas solo son accesibles para usuarios que han iniciado sesión.
 Estas rutas solo son accesibles para usuarios con rol de administrador.
 
 - **`GET /dashboard`**
+  ![WhatsApp Image 2025-11-27 at 1 23 19 PM (2)](https://github.com/user-attachments/assets/2b6b6e84-3467-4ec9-9b13-a76d0ab0f202)
   - **Página**: `DashboardPage`
+    
   - **Descripción**: Panel principal para administradores, que podría mostrar estadísticas de ventas, usuarios, etc.
 
 - **`GET /admin/products`**
+  ![WhatsApp Image 2025-11-27 at 1 23 19 PM (3)](https://github.com/user-attachments/assets/f28aa5f2-04ed-47d5-b270-14a8d678d3f0)
   - **Página**: `ProductListPage`
+    
   - **Descripción**: Interfaz para gestionar (crear, ver, editar, eliminar) todos los productos de la tienda.
 
 - **`GET /admin/categories`**
+  ![WhatsApp Image 2025-11-27 at 1 23 19 PM (4)](https://github.com/user-attachments/assets/b84e275b-a3dd-4dbd-85bc-1cc72b1414d3)
   - **Página**: `CategoryListPage`
+    
   - **Descripción**: Interfaz para gestionar las categorías de los productos.
 
 - **`GET /admin/orders`**
+  ![WhatsApp Image 2025-11-27 at 1 23 29 PM](https://github.com/user-attachments/assets/fcdcc3a9-5d18-45bd-8793-b406bdc766fb)
   - **Página**: `OrderListPage`
+    
   - **Descripción**: Interfaz para que los administradores vean todas las órdenes de los usuarios y actualicen su estado (ej: de "Pendiente" a "Enviado").
 
 ---
