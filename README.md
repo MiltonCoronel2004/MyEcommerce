@@ -53,7 +53,10 @@ Estas rutas son accesibles para cualquier visitante del sitio.
   - **Descripción**: La página de inicio de la tienda. Muestra un listado de productos destacados o todos los productos disponibles. Permite a los usuarios ver los productos y navegar a sus páginas de detalle.
 
 - **`GET /product/:id`**
+  
   - **Página**: `ProductDetailPage`
+    <img width="838" height="713" alt="image" src="https://github.com/user-attachments/assets/dfdeb63b-7a99-49c4-b57d-72a1b932d6bc" />
+
   - **Descripción**: Muestra la información detallada de un producto específico, incluyendo nombre, descripción, precio, imagen y un botón para "Añadir al carrito".
 
 ### Rutas de Autenticación
