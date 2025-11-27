@@ -17,15 +17,11 @@ const ResetPasswordPage = () => {
     setError("");
     setMessage("");
 
-    if (!password || !confirmPassword) {
-      return setError("Ambos campos de contraseña son obligatorios.");
-    }
-    if (password !== confirmPassword) {
-      return setError("Las contraseñas no coinciden.");
-    }
-    if (password.length < 6) {
-      return setError("La contraseña debe tener al menos 6 caracteres.");
-    }
+    if (!password || !confirmPassword) return setError("Ambos campos de contraseña son obligatorios.");
+
+    if (password !== confirmPassword) return setError("Las contraseñas no coinciden.");
+
+    if (password.length < 6) return setError("La contraseña debe tener al menos 6 caracteres.");
 
     try {
       await resetPassword(token, password);

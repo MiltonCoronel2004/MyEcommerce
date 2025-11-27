@@ -100,7 +100,7 @@ const OrderListPage = () => {
 
       if (ok) {
         toast.success(`Pedido #${orderId} marcado como ${statusTranslations[status]}.`);
-        fetchAllOrders(); // Refresh orders
+        fetchAllOrders();
       } else {
         handleApiError(data);
       }

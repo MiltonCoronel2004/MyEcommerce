@@ -28,7 +28,7 @@ const ProductDetailPage = () => {
             setQuantity(0);
           }
         } else {
-          setProduct(null); // Asegurarse de que no haya un producto en estado de error
+          setProduct(null);
           handleApiError(data);
         }
       } catch (err) {
@@ -47,9 +47,7 @@ const ProductDetailPage = () => {
       return;
     }
     const val = Number(value);
-    if (val >= 0 && val <= product.stock) {
-      setQuantity(val);
-    }
+    if (val >= 0 && val <= product.stock) setQuantity(val);
   };
 
   const handleAddToCart = async () => {
@@ -69,9 +67,7 @@ const ProductDetailPage = () => {
     if (quantity > 0) setQuantity(quantity - 1);
   };
 
-  if (loading) {
-    return <Loading />;
-  }
+  if (loading) return <Loading />;
 
   if (!product) {
     return <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center">Producto no encontrado.</div>;

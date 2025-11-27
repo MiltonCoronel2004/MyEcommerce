@@ -2,33 +2,19 @@ import useAuthStore from "../store/authStore";
 
 const BASE_URL = "http://localhost:3000/api";
 
-/**
- * Wrapper personalizado para la API `fetch`.
- * Simplifica las llamadas a la API del backend al automatizar tareas comunes:
- *  - Prefija todas las URLs con la URL base de la API.
- *  - Obtiene el token de autenticación del `authStore` y lo inyecta en los headers.
- *  - Establece el `Content-Type` a `application/json` por defecto.
- *  - Parsea la respuesta JSON.
- */
 const api = async (url, options = {}) => {
-  // Accede al estado de Zustand fuera de un componente de React.
-  // Es útil para obtener el token de forma síncrona justo antes de una llamada a la API.
   const { token } = useAuthStore.getState();
 
   const headers = {
     ...options.headers,
   };
 
-  // No se establece 'Content-Type' si se está subiendo un archivo,
-  // ya que el navegador lo manejará automáticamente con el 'boundary' correcto.
-  if (!(options.body instanceof FormData)) {
-    headers["Content-Type"] = "application/json";
-  }
+  // Solo asignar JSON. Si el body es FormData, no tocar Content-Type.
+  // El navegador debe generar el multipart/form-data con su boundary.
+  if (!(options.body instanceof FormData)) headers["Content-Type"] = "application/json";
 
   // Si hay un token, se añade el header de autorización.
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
+  if (token) headers["Authorization"] = `Bearer ${token}`;
 
   const config = {
     ...options,
@@ -42,9 +28,6 @@ const api = async (url, options = {}) => {
   // Esto permite un manejo de errores más robusto en el store o componente que llama.
   return { data, ok: res.ok, status: res.status };
 };
-
-// --- Funciones de API específicas ---
-// Son atajos para realizar llamadas comunes a la API, haciendo el código más legible.
 
 export const getCategories = () => api("/categories");
 

@@ -11,12 +11,11 @@ const CategoryFormModal = ({ category, onClose, onSaveSuccess }) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (category) {
+    if (category)
       setFormData({
         name: category.name || "",
         description: category.description || "",
       });
-    }
   }, [category]);
 
   const handleChange = (e) => {

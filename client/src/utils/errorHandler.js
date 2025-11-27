@@ -1,14 +1,5 @@
 import { toast } from "react-toastify";
 
-/**
- * Maneja y muestra errores de API de forma consistente.
- *
- * Esta función centraliza la lógica para interpretar los objetos de error
- * que vienen del backend y mostrarlos al usuario con `react-toastify`.
- * Puede manejar tanto un array de errores (de express-validator) como
- * un único mensaje de error.
- *
- */
 export const handleApiError = (data) => {
   if (data?.errors && Array.isArray(data.errors) && data.errors.length > 0) {
     // Caso para errores de validación de express-validator (devuelve un array)
