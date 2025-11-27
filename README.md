@@ -59,7 +59,9 @@ Estas rutas son accesibles para cualquier visitante del sitio.
 Rutas para el registro, inicio de sesión y recuperación de contraseña. Solo son accesibles para usuarios no autenticados.
 
 - **`GET /login`**
-  - **Página**: `LoginPage`
+  `![WhatsApp Image 2025-11-27 at 1 23 18 PM](https://github.com/user-attachments/assets/6951cb69-f985-46e4-9020-6d8be70713d7)
+  - **Página**: `LoginPage
+
   - **Descripción**: Formulario para que los usuarios inicien sesión con su email y contraseña.
 
 - **`GET /register`**
