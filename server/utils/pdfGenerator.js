@@ -10,10 +10,8 @@ export const streamToBuffer = (stream) => {
 };
 
 export const drawHeader = (doc, title, subtitle) => {
-  const logoPath = "client/public/e-commerce.png";
-  if (fs.existsSync(logoPath)) {
-    doc.image(logoPath, 50, 45, { width: 50 });
-  }
+  const logoPath = "../client/public/e-commerce.png";
+  if (fs.existsSync(logoPath)) doc.image(logoPath, 50, 45, { width: 50 });
 
   doc.fontSize(20).font("Helvetica-Bold").text(title, { align: "center" });
   doc.fontSize(12).font("Helvetica").text(subtitle, { align: "center" });

@@ -84,10 +84,8 @@ const useAuthStore = create(
         }
       },
 
-      /**
-       * Elimina un producto del carrito.
-       * También utiliza una "actualización optimista".
-       */
+      // Elimina un producto del carrito.
+      // También utiliza una "actualización optimista".
       removeProductFromCart: async (productId) => {
         const originalCart = get().cart;
 
@@ -102,7 +100,7 @@ const useAuthStore = create(
           await removeFromCart(productId);
           toast.info("Producto eliminado del carrito.");
         } catch (error) {
-          set({ cart: originalCart }); // Reversión en caso de error.
+          set({ cart: originalCart });
           toast.error("Error al eliminar el producto.");
         }
       },

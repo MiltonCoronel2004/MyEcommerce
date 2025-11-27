@@ -147,7 +147,6 @@ export const verifyPaymentSession = async (req, res) => {
 
     await transaction.commit();
 
-    // Enviar correo de confirmación
     try {
       const fullOrder = await Order.findByPk(order.id, {
         include: [
@@ -189,8 +188,6 @@ export const verifyPaymentSession = async (req, res) => {
       html = html.replace("{{items}}", itemsHtml);
       html = html.replace("{{total}}", `$${Number(fullOrder.total).toFixed(2)}`);
 
-      // TODO: Cambiar a fullOrder.User.email cuando Resend permita enviar a cualquier correo.
-      // Por ahora, se usa un correo de prueba hardcodeado.
       await resend.emails.send({
         from: "MyEcommerce <onboarding@resend.dev>",
         to: "miltoncoronel2004@gmail.com",
@@ -199,8 +196,6 @@ export const verifyPaymentSession = async (req, res) => {
       });
     } catch (emailError) {
       console.error("Error sending confirmation email:", emailError);
-      // No devolver un error al cliente, ya que el pago fue exitoso.
-      // Simplemente registrar el error.
     }
 
     res.json({ success: true, orderId: order.id });
