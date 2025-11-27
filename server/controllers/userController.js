@@ -16,7 +16,6 @@ const __dirname = path.dirname(__filename);
 
 // --- Funciones de Reseteo de Contraseña ---
 
-
 const getResetPasswordToken = () => {
   // Genera un token aleatorio de 20 bytes.
   const resetToken = crypto.randomBytes(20).toString("hex");
@@ -248,7 +247,7 @@ export const forgotPassword = async (req, res) => {
       html: html,
     });
 
-    res.status(200).json({ success: true, data: "Correo electrónico enviado." });
+    return res.status(200).json({ success: true, data: "Correo electrónico enviado si el usuario existe." });
   } catch (e) {
     // Limpia los campos de reseteo si algo falla para evitar estados inconsistentes.
     const user = await User.findOne({ where: { email: req.body.email } });
@@ -261,7 +260,6 @@ export const forgotPassword = async (req, res) => {
     res.status(500).json({ error: true, msg: e.message });
   }
 };
-
 
 //  Restablece la contraseña de un usuario utilizando un token válido.
 

@@ -17,18 +17,13 @@ import {
 const useAuthStore = create(
   persist(
     (set, get) => ({
-      // --- ESTADO ---
       token: null, // Almacena el JWT del usuario.
       user: null, // Almacena los datos del perfil del usuario.
       cart: null, // Almacena el estado del carrito de compras.
       loading: true, // true mientras se valida el token inicial, false después.
 
-      // --- ACCIONES ---
-
-      /** Actualiza el estado del usuario. */
       setUser: (newUser) => set({ user: newUser }),
 
-      /** Obtiene el carrito del usuario desde el backend. */
       fetchCart: async () => {
         if (!get().token) return; // No hacer nada si no hay token.
         try {
@@ -39,7 +34,6 @@ const useAuthStore = create(
         }
       },
 
-      /** Añade un producto al carrito llamando a la API. */
       addProductToCart: async (productId, quantity) => {
         try {
           const { data, ok } = await addToCart(productId, quantity);
@@ -54,13 +48,13 @@ const useAuthStore = create(
         }
       },
 
-      /**
-       * Actualiza la cantidad de un producto en el carrito.
-       * Utiliza una "actualización optimista" para una mejor experiencia de usuario:
-       * 1. La UI se actualiza inmediatamente de forma local.
-       * 2. Se realiza la llamada a la API.
-       * 3. Si la API falla, el estado se revierte a su estado original.
-       */
+      
+      // Actualiza la cantidad de un producto en el carrito.
+      // Utiliza una "actualización optimista" para una mejor experiencia de usuario:
+      // 1. La UI se actualiza inmediatamente de forma local.
+      // 2. Se realiza la llamada a la API.
+      // 3. Si la API falla, el estado se revierte a su estado original.
+
       updateProductQuantity: async (productId, quantity) => {
         const originalCart = get().cart;
         const newQuantity = Math.max(0, quantity); // Asegura que la cantidad no sea negativa.
@@ -105,7 +99,6 @@ const useAuthStore = create(
         }
       },
 
-      /** Realiza el proceso de inicio de sesión. */
       login: async (email, password) => {
         try {
           const { data, ok } = await apiLogin(email, password);
@@ -123,7 +116,6 @@ const useAuthStore = create(
         }
       },
 
-      /** Realiza el proceso de registro de un nuevo usuario. */
       register: async (userData = {}) => {
         try {
           const { data, ok } = await apiRegister(userData);
@@ -139,7 +131,6 @@ const useAuthStore = create(
         }
       },
 
-      /** Cierra la sesión del usuario, limpiando el estado. */
       logout: () => {
         set({ token: null, user: null, cart: null });
         toast.info("Has cerrado sesión.");
